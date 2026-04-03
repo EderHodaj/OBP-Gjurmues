@@ -1,0 +1,39 @@
+/* ── Global design tokens ── */
+:root {
+  --bg:         #0b0f1a;
+  --surface:    #131926;
+  --surface2:   #1c2334;
+  --border:     #253047;
+  --accent:     #3b82f6;   /* OBP blue */
+  --accent2:    #10b981;   /* savings green */
+  --accent3:    #f59e0b;   /* warning amber */
+  --obp:        #1d4ed8;   /* deep OBP blue */
+  --text:       #e8edf5;
+  --text-muted: #7a8ba8;
+  --danger:     #ef4444;
+  --font-main:  'Sora', sans-serif;
+  --font-mono:  'DM Mono', monospace;
+  --radius:     8px;
+  --t:          140ms ease;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-main);
+  font-size: 14px;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+#root { animation: fadeUp .25s ease; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
