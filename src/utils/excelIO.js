@@ -315,9 +315,8 @@ export function importFromExcel(file) {
           const dataHapjes    = toDateString(dhRaw);
 
           // Year: extract from Data Shpalljes; fall back to Viti column
-          const year = dataShpalljes
-            ? toYear(dsRaw)
-            : (parseInt(norm.year) || new Date().getFullYear());
+          const year = parseInt(norm.year)
+              || (dataShpalljes ? toYear(dsRaw) : new Date().getFullYear());
 
           rows.push({
             id:            crypto.randomUUID(),
