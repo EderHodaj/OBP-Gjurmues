@@ -20,6 +20,8 @@ export function useBudget() {
       if (field === 'vitiShpalljes')   v = parseInt(value) || row.vitiShpalljes;
       if (field === 'vitiVleresimit')  v = parseInt(value) || row.vitiVleresimit;
       let updated = { ...row, [field]: v, lastEditedAt: new Date().toISOString(), editedBy: username || 'Anonymous' };
+      // Keep year in sync with vitiShpalljes
+      if (field === 'vitiShpalljes') updated.year = v;
       if (['fondiLimit','vleraFituesit'].includes(field)) updated = recalcRow(updated);
       return updated;
     }));

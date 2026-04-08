@@ -35,6 +35,13 @@
 .sc-unit  { font-size:13px; font-weight:400; color:var(--text-muted); }
 .sc-sub   { font-size:11px; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px; }
 
+/* Year breakdown boxes */
+.sc-years { display:flex; flex-direction:column; gap:4px; margin-top:8px; }
+.sc-year-box { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:5px; padding:5px 10px; }
+.sc-year-label { font-size:11px; font-weight:600; color:var(--accent); font-family:var(--font-mono); min-width:34px; }
+.sc-year-value { font-size:13px; font-weight:600; color:var(--text); font-family:var(--font-mono); }
+.sc-year-detail { font-size:11px; color:var(--text-muted); font-family:var(--font-mono); margin-left:auto; }
+
 /* ── IMPORT/EXPORT BAR ── */
 .iebar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
 .iebar-left { display:flex; gap:8px; flex-wrap:wrap; }

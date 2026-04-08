@@ -82,10 +82,10 @@ export default function DashboardPage({ rows }) {
   const countByYear = {};
   const completedByYear = {};
   years.forEach(y => {
-    annulledByYear[y] = annulled.filter(r => r.year === y).length;
-    annulledFondiByYear[y] = grandTotal(annulled.filter(r => r.year === y), 'fondiLimit');
-    countByYear[y] = rows.filter(r => r.year === y).length;
-    completedByYear[y] = completed.filter(r => r.year === y).length;
+    annulledByYear[y] = annulled.filter(r => (r.vitiShpalljes || r.year) === y).length;
+    annulledFondiByYear[y] = grandTotal(annulled.filter(r => (r.vitiShpalljes || r.year) === y), 'fondiLimit');
+    countByYear[y] = rows.filter(r => (r.vitiShpalljes || r.year) === y).length;
+    completedByYear[y] = completed.filter(r => (r.vitiShpalljes || r.year) === y).length;
   });
 
   const fondiProkByYear = {};
@@ -111,45 +111,71 @@ export default function DashboardPage({ rows }) {
         <div className="kpi kpi-blue">
           <div className="kpi-label">Procedura Gjithsej</div>
           <div className="kpi-value">{rows.length}</div>
-          {years.map(y => (
-            <div className="kpi-sub" key={y}>{y}: {countByYear[y]}</div>
-          ))}
+          <div className="sc-years">
+            {years.map(y => (
+              <div className="sc-year-box" key={y}>
+                <span className="sc-year-label">{y}</span>
+                <span className="sc-year-value">{countByYear[y]}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="kpi kpi-green">
           <div className="kpi-label">✓ Të Përfunduara</div>
           <div className="kpi-value">{completed.length}</div>
           <div className="kpi-sub">{rows.length>0?(completed.length/rows.length*100).toFixed(1):0}% e totalit</div>
-          {years.map(y => (
-            <div className="kpi-sub" key={y}>{y}: {completedByYear[y]}</div>
-          ))}
+          <div className="sc-years">
+            {years.map(y => (
+              <div className="sc-year-box" key={y}>
+                <span className="sc-year-label">{y}</span>
+                <span className="sc-year-value">{completedByYear[y]}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="kpi kpi-red">
           <div className="kpi-label">✗ Të Anulluara</div>
           <div className="kpi-value">{annulled.length}</div>
           <div className="kpi-sub">{annulledPct}% · {formatMlnEur(annulledFondi)} mln €</div>
-          {years.map(y => (
-            <div className="kpi-sub" key={y}>{y}: {annulledByYear[y]} ({formatMlnEur(annulledFondiByYear[y])} mln €)</div>
-          ))}
+          <div className="sc-years">
+            {years.map(y => (
+              <div className="sc-year-box" key={y}>
+                <span className="sc-year-label">{y}</span>
+                <span className="sc-year-value">{annulledByYear[y]}</span>
+                <span className="sc-year-detail">{formatMlnEur(annulledFondiByYear[y])} mln €</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="kpi kpi-blue">
           <div className="kpi-label">Fondi i Prokuruar (gjithsej)</div>
           <div className="kpi-value">{formatMlnEur(grandFondiAll)} mln €</div>
           <div className="kpi-sub">{formatNum(grandFondiAll)} Lekë</div>
-          {years.map(y => (
-            <div className="kpi-sub" key={y}>{y}: {formatMlnEur(fondiProkByYear[y])} mln €</div>
-          ))}
+          <div className="sc-years">
+            {years.map(y => (
+              <div className="sc-year-box" key={y}>
+                <span className="sc-year-label">{y}</span>
+                <span className="sc-year-value">{formatMlnEur(fondiProkByYear[y])} mln €</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="kpi kpi-green">
           <div className="kpi-label">Fondi i Vlerësuar (✓)</div>
           <div className="kpi-value">{formatMlnEur(grandFondiComp)} mln €</div>
           <div className="kpi-sub">{formatNum(grandFondiComp)} Lekë</div>
-          {vYears.map(y => (
-            <div className="kpi-sub" key={y}>{y}: {formatMlnEur(fondiVlerByYear[y])} mln €</div>
-          ))}
+          <div className="sc-years">
+            {vYears.map(y => (
+              <div className="sc-year-box" key={y}>
+                <span className="sc-year-label">{y}</span>
+                <span className="sc-year-value">{formatMlnEur(fondiVlerByYear[y])} mln €</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="kpi kpi-green">

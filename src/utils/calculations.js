@@ -7,7 +7,16 @@ export function totalsByYear(rows, field = 'fondiLimit') {
 }
 
 export function uniqueYears(rows) {
-  return [...new Set(rows.map(r => Number(r.year)).filter(y => !isNaN(y)))].sort((a,b)=>a-b);
+  const ySet = new Set();
+  rows.forEach(r => {
+    const y1 = Number(r.vitiShpalljes || r.year);
+    const y2 = Number(r.vitiVleresimit || r.year);
+    const y3 = Number(r.year);
+    if (!isNaN(y1)) ySet.add(y1);
+    if (!isNaN(y2)) ySet.add(y2);
+    if (!isNaN(y3)) ySet.add(y3);
+  });
+  return [...ySet].sort((a,b) => a-b);
 }
 
 export function grandTotal(rows, field = 'fondiLimit') {
