@@ -257,10 +257,11 @@ export function importFromExcel(file) {
           const dataShpalljes = toDateString(dsRaw);
           const dataHapjes    = toDateString(dhRaw);
 
-          const year = parseInt(norm.year)
+          const vitiShpalljes = parseInt(norm.vitiShpalljes)
+              || parseInt(norm.year)
               || (dataShpalljes ? toYear(dsRaw) : new Date().getFullYear());
 
-          const vitiShpalljes = parseInt(norm.vitiShpalljes) || year;
+          const year = vitiShpalljes;
           const vitiVleresimit = parseInt(norm.vitiVleresimit) || vitiShpalljes;
 
           rows.push({

@@ -28,9 +28,10 @@ body {
   line-height: 1.6;
 }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: #5a6a8a; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #7a8ba8; }
 
 #root { animation: fadeUp .25s ease; }
 @keyframes fadeUp {

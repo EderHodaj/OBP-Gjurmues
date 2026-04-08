@@ -11,6 +11,7 @@ export default function SummaryCards({ rows }) {
   const annulledPct    = rows.length > 0 ? (annulled.length / rows.length * 100).toFixed(1) : '0.0';
   const annulledFondi  = grandTotal(annulled, 'fondiLimit');
 
+  // Year breakdowns
   const years = uniqueYears(rows);
   const countByYear = {};
   const completedByYear = {};
@@ -24,11 +25,13 @@ export default function SummaryCards({ rows }) {
     annulledFondiByYear[y] = grandTotal(annulled.filter(r => r.year === y), 'fondiLimit');
   });
 
+  // Fondi Prokuruar by vitiShpalljes
   const fondiProkByYear = {};
   years.forEach(y => {
     fondiProkByYear[y] = grandTotal(rows.filter(r => (r.vitiShpalljes || r.year) === y), 'fondiLimit');
   });
 
+  // Fondi Vleresuar by vitiVleresimit
   const fondiVlerByYear = {};
   const vYears = [...new Set(rows.map(r => r.vitiVleresimit || r.year).filter(y => !isNaN(y)))].sort((a,b)=>a-b);
   vYears.forEach(y => {
@@ -37,6 +40,7 @@ export default function SummaryCards({ rows }) {
 
   return (
     <div className="summary-cards">
+      {/* Procedura Gjithsej with year breakdown */}
       <div className="sc sc-blue">
         <div className="sc-label">Procedura Gjithsej</div>
         <div className="sc-value">{rows.length}</div>
@@ -63,7 +67,7 @@ export default function SummaryCards({ rows }) {
       </div>
 
       <div className="sc sc-blue">
-        <div className="sc-label">Fondi i Prokuruar (gjithsej)</div>
+        <div className="sc-label">Fondi i Prokuruar (të gjitha)</div>
         <div className="sc-value">{formatMlnEur(totalProkuruar)}<span className="sc-unit"> mln €</span></div>
         {years.map(y => (
           <div className="sc-sub" key={y}>{y}: {formatMlnEur(fondiProkByYear[y])} mln €</div>
@@ -78,6 +82,7 @@ export default function SummaryCards({ rows }) {
         ))}
       </div>
 
+      {/* Kursimi with year breakdown */}
       <div className="sc sc-green">
         <div className="sc-label">Kursimi (✓ përfunduara)</div>
         <div className="sc-value">{formatMlnEur(totalKursimi)}<span className="sc-unit"> mln €</span></div>

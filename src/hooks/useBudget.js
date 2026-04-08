@@ -39,8 +39,8 @@ export function useBudget() {
   }, [username]);
 
   const addRow      = useCallback(() => {
-    const yr = rows.length > 0 ? rows[rows.length-1].year : 2026;
-    setRows(prev => [...prev, createBlankRow(yr)]);
+    const yr = rows.length > 0 ? rows[0].year : 2026;
+    setRows(prev => [createBlankRow(yr), ...prev]);
   }, [rows]);
 
   const deleteRow   = useCallback((rowId) => {

@@ -18,6 +18,7 @@ const HIST_CLR = '#374151';
 const GREEN    = '#10b981';
 const AMBER    = '#f59e0b';
 const RED      = '#ef4444';
+const PIE_CLR  = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
 const TT       = { background:'#131926', border:'1px solid #253047', borderRadius:8, color:'#e8edf5', fontFamily:'DM Mono,monospace', fontSize:12 };
 const TT_L     = { color:'#3b82f6' };
 
@@ -43,32 +44,10 @@ export default function DashboardPage({ rows }) {
   const totKurs  = totalsByYear(completed, 'kursimi');
   const totFondi = totalsByYear(rows,      'fondiLimit');
 
-  // Year breakdowns
-  const countByYear = {};
-  const completedByYear = {};
-  const annulledByYear = {};
-  const annulledFondiByYear = {};
-  years.forEach(y => {
-    countByYear[y] = rows.filter(r => r.year === y).length;
-    completedByYear[y] = completed.filter(r => r.year === y).length;
-    annulledByYear[y] = annulled.filter(r => r.year === y).length;
-    annulledFondiByYear[y] = grandTotal(annulled.filter(r => r.year === y), 'fondiLimit');
-  });
-
-  const fondiProkByYear = {};
-  years.forEach(y => {
-    fondiProkByYear[y] = grandTotal(rows.filter(r => (r.vitiShpalljes || r.year) === y), 'fondiLimit');
-  });
-
-  const fondiVlerByYear = {};
-  const vYears = [...new Set(rows.map(r => r.vitiVleresimit || r.year).filter(y => !isNaN(y)))].sort((a,b)=>a-b);
-  vYears.forEach(y => {
-    fondiVlerByYear[y] = grandTotal(completed.filter(r => (r.vitiVleresimit || r.year) === y), 'fondiLimit');
-  });
-
   // Build live-year bars
   const liveByYear = years.map(y => {
     const yrows = rows.filter(r => r.year === y);
+    const ycomp = completed.filter(r => r.year === y);
     const fondi = totFondi[y] || 0;
     const kurs  = totKurs[y]  || 0;
     const avgOf = yrows.length > 0 ? yrows.reduce((s,r) => s+Number(r.nrOfertave||0),0)/yrows.length : 0;
@@ -96,6 +75,29 @@ export default function DashboardPage({ rows }) {
     { name:'Të anulluara',   value: annulled.length  },
   ].filter(d => d.value > 0);
   const statusColors = [AMBER, GREEN, RED];
+
+  // Annulled by year for display
+  const annulledByYear = {};
+  const annulledFondiByYear = {};
+  const countByYear = {};
+  const completedByYear = {};
+  years.forEach(y => {
+    annulledByYear[y] = annulled.filter(r => r.year === y).length;
+    annulledFondiByYear[y] = grandTotal(annulled.filter(r => r.year === y), 'fondiLimit');
+    countByYear[y] = rows.filter(r => r.year === y).length;
+    completedByYear[y] = completed.filter(r => r.year === y).length;
+  });
+
+  const fondiProkByYear = {};
+  years.forEach(y => {
+    fondiProkByYear[y] = grandTotal(rows.filter(r => (r.vitiShpalljes || r.year) === y), 'fondiLimit');
+  });
+
+  const fondiVlerByYear = {};
+  const vYears = [...new Set(rows.map(r => r.vitiVleresimit || r.year).filter(y => !isNaN(y)))].sort((a,b)=>a-b);
+  vYears.forEach(y => {
+    fondiVlerByYear[y] = grandTotal(completed.filter(r => (r.vitiVleresimit || r.year) === y), 'fondiLimit');
+  });
 
   return (
     <main className="page">
@@ -165,34 +167,44 @@ export default function DashboardPage({ rows }) {
       </div>
 
       <div className="dash-grid">
+
+        {/* 1 — Numri procedurave */}
         <ChartCard title="Numri i Procedurave të Shpallura">
           <BarC data={merged('procedures')} fmt={v=>`${v}`} label="Procedura" />
           <Legend2 />
         </ChartCard>
 
+        {/* 2 — Fonde */}
         <ChartCard title="Fonde të Prokuruara (mln €)">
           <BarC data={merged('fondiMlnEur')} fmt={v=>`${v} mln €`} label="Fondi" />
           <Legend2 />
         </ChartCard>
 
+        {/* 3 — Kursimet */}
         <ChartCard title="Kursimet (mln €) — vetëm ✓ të përfunduarat" accent>
           <BarC data={merged('kursimiMlnEur')} fmt={v=>`${v} mln €`} label="Kursimi" green />
           <Legend2 green />
         </ChartCard>
 
+        {/* 4 — Oferta mesatare */}
         <ChartCard title="Numri Mesatar i Ofertave">
           <BarC data={merged('ofertave')} fmt={v=>`${v}`} label="Oferta" amber domain={[0,6]} />
           <Legend2 amber />
         </ChartCard>
 
+        {/* 5 — Status pie */}
         <ChartCard title="Statusi i Procedurave">
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie data={statusPie} dataKey="value" nameKey="name" cx="40%" cy="50%"
-                outerRadius={90} label={({name,percent}) => `${name}: ${(percent*100).toFixed(0)}%`} labelLine={false}>
+          <ResponsiveContainer width="100%" height={340}>
+            <PieChart margin={{ top:10, right:80, left:80, bottom:10 }}>
+              <Pie data={statusPie} dataKey="value" nameKey="name" cx="50%" cy="45%"
+                outerRadius={85} label={({name,percent,x,y,cx}) => (
+                  <text x={x} y={y} fill="#e8edf5" fontSize={12} fontFamily="DM Mono" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                    {`${name}: ${(percent*100).toFixed(0)}%`}
+                  </text>
+                )} labelLine={{ stroke:'#7a8ba8' }}>
                 {statusPie.map((_,i) => <Cell key={i} fill={statusColors[i]} />)}
               </Pie>
-              <Tooltip contentStyle={TT} formatter={(v,n,p) => [`${v} procedura`, p.payload.name]} />
+              <Tooltip contentStyle={{...TT, color:'#e8edf5'}} itemStyle={{color:'#e8edf5'}} formatter={(v,n,p) => [`${v} procedura`, p.payload.name]} />
               <Legend wrapperStyle={{ fontFamily:'DM Mono', fontSize:12, color:'#e8edf5' }} />
             </PieChart>
           </ResponsiveContainer>
@@ -203,12 +215,23 @@ export default function DashboardPage({ rows }) {
             </span>
           </div>
         </ChartCard>
+
       </div>
     </main>
   );
 }
 
 /* ── Helpers ── */
+function KPI({ label, value, sub, color='blue' }) {
+  return (
+    <div className={`kpi kpi-${color}`}>
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-value">{value}</div>
+      {sub && <div className="kpi-sub">{sub}</div>}
+    </div>
+  );
+}
+
 function ChartCard({ title, children, accent }) {
   return (
     <div className={`chart-card${accent?' chart-card-accent':''}`}>
