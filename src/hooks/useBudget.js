@@ -16,7 +16,9 @@ export function useBudget() {
       let v = value;
       if (['fondiLimit','vleraFituesit'].includes(field)) v = Math.max(0, parseFloat(value) || 0);
       if (field === 'nrOfertave') v = Math.max(0, parseInt(value) || 0);
-      if (field === 'year')       v = parseInt(value) || row.year;
+      if (field === 'year')            v = parseInt(value) || row.year;
+      if (field === 'vitiShpalljes')   v = parseInt(value) || row.vitiShpalljes;
+      if (field === 'vitiVleresimit')  v = parseInt(value) || row.vitiVleresimit;
       let updated = { ...row, [field]: v, lastEditedAt: new Date().toISOString(), editedBy: username || 'Anonymous' };
       if (['fondiLimit','vleraFituesit'].includes(field)) updated = recalcRow(updated);
       return updated;

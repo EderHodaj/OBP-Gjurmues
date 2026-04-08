@@ -17,7 +17,6 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
   const topMirrorRef   = useRef(null);
   const topInnerRef    = useRef(null);
 
-  // ── Sync top scrollbar width to match table width ──
   useEffect(() => {
     function syncWidth() {
       if (tableScrollRef.current && topInnerRef.current) {
@@ -30,7 +29,6 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
     return () => ro.disconnect();
   }, [rows, page]);
 
-  // ── Mirror scroll left between top bar and table ──
   function onTableScroll(e) {
     if (topMirrorRef.current) topMirrorRef.current.scrollLeft = e.target.scrollLeft;
   }
@@ -43,7 +41,7 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
 
   const filtered = useMemo(() => {
     let r = rows;
-    if (filterYear   !== 'all') r = r.filter(x => String(x.year) === filterYear);
+    if (filterYear   !== 'all') r = r.filter(x => String(x.vitiShpalljes || x.year) === filterYear || String(x.vitiVleresimit || x.year) === filterYear);
     if (filterLloji  !== 'all') r = r.filter(x => x.lloji === filterLloji);
     if (filterStatus === 'completed') r = r.filter(x =>  x.ePerfunduar && !x.eAnulluar);
     if (filterStatus === 'annulled')  r = r.filter(x =>  x.eAnulluar);
@@ -79,15 +77,13 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
     );
   }
 
-  // Footer: kursimi totals from completed rows only, per year
+  // Footer totals
   const completedRows = rows.filter(r => r.ePerfunduar && !r.eAnulluar);
   const kursimiByYear = totalsByYear(completedRows, 'kursimi');
   const fondiByYear   = totalsByYear(completedRows, 'fondiLimit');
 
   return (
     <div className="table-wrapper">
-
-      {/* ── Filters ── */}
       <div className="table-filters">
         <input className="filter-input" placeholder="🔍  Kërko sipas objektit ose ref…"
           value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
@@ -111,18 +107,15 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
         <span className="filter-count">{filtered.length} rreshta</span>
       </div>
 
-      {/* ── Top scrollbar (mirrors bottom) ── */}
       <div className="scroll-top-mirror" ref={topMirrorRef} onScroll={onMirrorScroll}>
         <div className="scroll-top-inner" ref={topInnerRef} />
       </div>
 
-      {/* ── Table ── */}
       <div className="table-scroll" ref={tableScrollRef} onScroll={onTableScroll}>
         <table className="btable">
           <thead>
             <tr>
               <Th field="nr">Nr.</Th>
-              <Th field="year">Viti</Th>
               <th style={{ minWidth:300 }}>Objektet</th>
               <th>Nr. Ref</th>
               <Th field="fondiLimit">Fondi Limit</Th>
@@ -134,6 +127,8 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
               <Th field="nrOfertave">Oferta</Th>
               <Th field="dataShpalljes" style={{ minWidth:110 }}>Dt. Shpalljes</Th>
               <Th field="dataHapjes"   style={{ minWidth:110 }}>Dt. Hapjes</Th>
+              <Th field="vitiShpalljes" style={{ minWidth:90 }}>Viti Shpalljes</Th>
+              <Th field="vitiVleresimit" style={{ minWidth:90 }}>Viti Vlerësimit</Th>
               <th className="col-flag" title="E Përfunduar">✓</th>
               <th className="col-flag" title="E Anulluar">✗</th>
               <th className="col-meta">Redaktuar nga</th>
@@ -144,7 +139,7 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
 
           <tbody>
             {pageRows.length === 0 && (
-              <tr><td colSpan={18} className="empty-row">Nuk ka rreshta.</td></tr>
+              <tr><td colSpan={19} className="empty-row">Nuk ka rreshta.</td></tr>
             )}
             {pageRows.map(row => {
               const hi  = lastEditedCell?.rowId === row.id;
@@ -155,8 +150,6 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
                 <tr key={row.id} className={rowCls}>
                   <EditableCell value={row.nr??''} field="nr" rowId={row.id} onSave={onUpdateCell}
                     isHighlighted={hi && lastEditedCell?.field==='nr'} />
-                  <EditableCell value={row.year} field="year" rowId={row.id} onSave={onUpdateCell}
-                    isHighlighted={hi && lastEditedCell?.field==='year'} />
                   <EditableCell value={row.description} field="description" rowId={row.id} onSave={onUpdateCell}
                     isHighlighted={hi && lastEditedCell?.field==='description'} />
                   <EditableCell value={row.ref} field="ref" rowId={row.id} onSave={onUpdateCell}
@@ -168,7 +161,6 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
                     isHighlighted={hi && lastEditedCell?.field==='vleraFituesit'}
                     display={formatNum(row.vleraFituesit)} />
 
-                  {/* Ne % — read-only, auto-calculated (vlera / fondi) */}
                   <td className="ne-pct-cell">
                     <div className="ne-pct-wrap">
                       <span style={{ color: Number(row.nePct) > 100 ? 'var(--danger)' : 'var(--text)' }}>
@@ -183,7 +175,6 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
                     </div>
                   </td>
 
-                  {/* Kursimi — read-only, auto-calculated */}
                   <td className={`kursimi-cell ${neg?'negative':'positive'}`}>
                     {formatNum(row.kursimi)}
                   </td>
@@ -210,15 +201,21 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
                   <EditableCell value={row.dataHapjes} field="dataHapjes" rowId={row.id} onSave={onUpdateCell}
                     isHighlighted={hi && lastEditedCell?.field==='dataHapjes'} />
 
-                  {/* ✓ E Përfunduar */}
+                  {/* Viti Shpalljes */}
+                  <EditableCell value={row.vitiShpalljes || row.year} field="vitiShpalljes" rowId={row.id} onSave={onUpdateCell}
+                    isHighlighted={hi && lastEditedCell?.field==='vitiShpalljes'} />
+
+                  {/* Viti Vlerësimit */}
+                  <EditableCell value={row.vitiVleresimit || row.year} field="vitiVleresimit" rowId={row.id} onSave={onUpdateCell}
+                    isHighlighted={hi && lastEditedCell?.field==='vitiVleresimit'} />
+
                   <td className="col-flag">
                     <input type="checkbox" className="flag-check check-green"
                       checked={!!row.ePerfunduar}
                       onChange={() => onToggleFlag(row.id, 'ePerfunduar')}
-                      title="Shëno si të përfunduar — llogaritet në Fondin e Vlerësuar" />
+                      title="Shëno si të përfunduar" />
                   </td>
 
-                  {/* ✗ E Anulluar */}
                   <td className="col-flag">
                     <input type="checkbox" className="flag-check check-red"
                       checked={!!row.eAnulluar}
@@ -236,17 +233,16 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
             })}
           </tbody>
 
-          {/* ── Per-year kursimi footer (completed rows only) ── */}
           {uniqueYears(rows).map(y => {
             const kurs = kursimiByYear[y] || 0;
             const fond = fondiByYear[y]   || 0;
             return (
               <tfoot key={y}>
                 <tr className="total-row">
-                  <td colSpan={7} className="total-lbl">✓ Kursimi {y} (vetëm të përfunduarat)</td>
+                  <td colSpan={6} className="total-lbl">✓ Kursimi {y} (vetëm të përfunduarat)</td>
                   <td className="total-val">{formatNum(kurs)}</td>
                   <td className="total-val">{fond > 0 ? (kurs/fond*100).toFixed(2)+'%' : '—'}</td>
-                  <td colSpan={9} />
+                  <td colSpan={11} />
                 </tr>
               </tfoot>
             );
@@ -254,7 +250,6 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
         </table>
       </div>
 
-      {/* ── Pagination ── */}
       {totalPages > 1 && (
         <div className="pagination">
           <button className="pg-btn" disabled={page===1}          onClick={()=>setPage(1)}>⟪ E para</button>

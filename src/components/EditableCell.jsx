@@ -19,7 +19,7 @@ export default function EditableCell({ value, field, rowId, onSave, isHighlighte
     if (e.key === 'Escape') setEditing(false);
   }
 
-  const isNum = ['fondiLimit','vleraFituesit','nrOfertave','year'].includes(field);
+  const isNum = ['fondiLimit','vleraFituesit','nrOfertave','year','vitiShpalljes','vitiVleresimit'].includes(field);
 
   return (
     <td

@@ -6,7 +6,7 @@ export default function TablePage({ rows, username, onUpdateCell, onToggleFlag, 
   return (
     <main className="page">
       <header className="page-hdr">
-        <h1 className="page-title">Procedurat e Prokurimit — SAVINGS</h1>
+        <h1 className="page-title">Procedurat e Prokurimit</h1>
         <p className="page-sub">
           Klikoni çdo qelizë për të redaktuar · <strong>Ne %</strong> = Vlera fituesit / Fondi limit · Kursimi llogaritet automatikisht · Çekoni ✓ / ✗ për status
         </p>
