@@ -15,12 +15,11 @@ export function useBudget() {
       if (row.id !== rowId) return row;
       let v = value;
       if (['fondiLimit','vleraFituesit'].includes(field)) v = Math.max(0, parseFloat(value) || 0);
-      if (field === 'nrOfertave') v = Math.max(0, parseInt(value) || 0);
+      if (['nrOfertave','nrOperatoreve'].includes(field)) v = Math.max(0, parseInt(value) || 0);
       if (field === 'year')            v = parseInt(value) || row.year;
       if (field === 'vitiShpalljes')   v = parseInt(value) || row.vitiShpalljes;
       if (field === 'vitiVleresimit')  v = parseInt(value) || row.vitiVleresimit;
       let updated = { ...row, [field]: v, lastEditedAt: new Date().toISOString(), editedBy: username || 'Anonymous' };
-      // Keep year in sync with vitiShpalljes
       if (field === 'vitiShpalljes') updated.year = v;
       if (['fondiLimit','vleraFituesit'].includes(field)) updated = recalcRow(updated);
       return updated;
@@ -40,7 +39,7 @@ export function useBudget() {
     setLEC({ rowId, field: flag });
   }, [username]);
 
-  const addRow      = useCallback(() => {
+  const addRow = useCallback(() => {
     const yr = rows.length > 0 ? rows[0].year : 2026;
     setRows(prev => [createBlankRow(yr), ...prev]);
   }, [rows]);
