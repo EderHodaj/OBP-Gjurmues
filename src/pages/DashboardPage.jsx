@@ -4,14 +4,15 @@ import {
 } from 'recharts';
 import { formatNum, formatMlnEur, grandTotal, totalsByYear, uniqueYears } from '../utils/calculations';
 
-// Historical data — proclamation fields by vitiShpalljes, evaluation fields by vitiVleresimit
+// Historical data
+// NOTE: annulled/annulledPct are now by vitiVleresimit (change #1)
 const HISTORY = [
-  { label:'2019',        procedures:158, annulled:51,  completed:107, fondiMlnEur:85,  kursimiMlnEur:3.3,  ofertave:3.7, operatoreve:3.7, procPerMonth:13.2, fondiPerMonth:7.08, annulledPct:32.28, suksesPct:67.72, kursimiPct:4.05  },
-  { label:'2020',        procedures:267, annulled:86,  completed:181, fondiMlnEur:47,  kursimiMlnEur:5.1,  ofertave:3.8, operatoreve:3.8, procPerMonth:22.3, fondiPerMonth:3.92, annulledPct:32.21, suksesPct:67.79, kursimiPct:12.05 },
-  { label:'2021',        procedures:187, annulled:64,  completed:123, fondiMlnEur:37,  kursimiMlnEur:4.6,  ofertave:3.6, operatoreve:3.6, procPerMonth:15.6, fondiPerMonth:3.08, annulledPct:34.22, suksesPct:65.78, kursimiPct:12.50 },
-  { label:'2022',        procedures:204, annulled:67,  completed:137, fondiMlnEur:58,  kursimiMlnEur:4.6,  ofertave:3.3, operatoreve:3.3, procPerMonth:17.0, fondiPerMonth:4.83, annulledPct:32.84, suksesPct:67.16, kursimiPct:8.17  },
-  { label:'2023',        procedures:171, annulled:74,  completed:97,  fondiMlnEur:39,  kursimiMlnEur:2.7,  ofertave:2.7, operatoreve:2.7, procPerMonth:14.3, fondiPerMonth:3.25, annulledPct:43.27, suksesPct:56.73, kursimiPct:5.14  },
-  { label:'OBP 8M 2024', procedures:314, annulled:55,  completed:259, fondiMlnEur:168, kursimiMlnEur:18.4, ofertave:4.7, operatoreve:4.7, procPerMonth:34.9, fondiPerMonth:21.0, annulledPct:16.88, suksesPct:83.12, kursimiPct:11.64 },
+  { label:'2019',        procedures:158, annulled:51,  completed:107, fondiMlnEur:85,  fondiVlerMlnEur:85,  kursimiMlnEur:3.3,  ofertave:3.7, operatoreve:3.7, procPerMonth:13.2, fondiPerMonth:7.08, annulledPct:32.28, suksesPct:67.72, kursimiVlerPct:3.88  },
+  { label:'2020',        procedures:267, annulled:86,  completed:181, fondiMlnEur:47,  fondiVlerMlnEur:47,  kursimiMlnEur:5.1,  ofertave:3.8, operatoreve:3.8, procPerMonth:22.3, fondiPerMonth:3.92, annulledPct:32.21, suksesPct:67.79, kursimiVlerPct:10.85 },
+  { label:'2021',        procedures:187, annulled:64,  completed:123, fondiMlnEur:37,  fondiVlerMlnEur:37,  kursimiMlnEur:4.6,  ofertave:3.6, operatoreve:3.6, procPerMonth:15.6, fondiPerMonth:3.08, annulledPct:34.22, suksesPct:65.78, kursimiVlerPct:12.43 },
+  { label:'2022',        procedures:204, annulled:67,  completed:137, fondiMlnEur:58,  fondiVlerMlnEur:58,  kursimiMlnEur:4.6,  ofertave:3.3, operatoreve:3.3, procPerMonth:17.0, fondiPerMonth:4.83, annulledPct:32.84, suksesPct:67.16, kursimiVlerPct:7.93  },
+  { label:'2023',        procedures:171, annulled:74,  completed:97,  fondiMlnEur:39,  fondiVlerMlnEur:39,  kursimiMlnEur:2.7,  ofertave:2.7, operatoreve:2.7, procPerMonth:14.3, fondiPerMonth:3.25, annulledPct:43.27, suksesPct:56.73, kursimiVlerPct:6.92  },
+  { label:'OBP 8M 2024', procedures:314, annulled:55,  completed:259, fondiMlnEur:168, fondiVlerMlnEur:168, kursimiMlnEur:18.4, ofertave:4.7, operatoreve:4.7, procPerMonth:34.9, fondiPerMonth:21.0, annulledPct:16.88, suksesPct:83.12, kursimiVlerPct:10.95 },
 ];
 
 const OBP_CLR  = '#3b82f6';
@@ -36,85 +37,113 @@ export default function DashboardPage({ rows }) {
   const years     = uniqueYears(rows);
 
   // Grand totals
-  const grandFondiAll  = grandTotal(rows,      'fondiLimit'); // all rows — for prokuruar
-  const grandFondiComp = grandTotal(completed, 'fondiLimit'); // completed — for vlerësuar
+  const grandFondiAll  = grandTotal(rows,      'fondiLimit');
+  const grandFondiComp = grandTotal(completed, 'fondiLimit');
   const grandKursimi   = grandTotal(completed, 'kursimi');
   const avgPct         = grandFondiComp > 0 ? (grandKursimi / grandFondiComp * 100) : 0;
   const annulledPct    = rows.length > 0 ? (annulled.length / rows.length * 100).toFixed(1) : '0.0';
   const annulledFondi  = grandTotal(annulled, 'fondiLimit');
 
-  // Proclamation-based breakdowns (vitiShpalljes)
-  const countByYear = {}, annulledByYear = {}, annulledFondiByYear = {}, fondiProkByYear = {};
+  // Proclamation-based (vitiShpalljes): procedures count, fondi prokuruar
+  const countByYear = {}, fondiProkByYear = {};
   years.forEach(y => {
     const yShp = rows.filter(r => (r.vitiShpalljes || r.year) === y);
-    const yAnn = annulled.filter(r => (r.vitiShpalljes || r.year) === y);
-    countByYear[y]         = yShp.length;
-    annulledByYear[y]      = yAnn.length;
-    annulledFondiByYear[y] = grandTotal(yAnn, 'fondiLimit');
-    fondiProkByYear[y]     = grandTotal(yShp, 'fondiLimit');
+    countByYear[y]     = yShp.length;
+    fondiProkByYear[y] = grandTotal(yShp, 'fondiLimit');
   });
 
-  // Evaluation-based breakdowns (vitiVleresimit)
-  const completedByYear = {}, fondiVlerByYear = {};
+  // Evaluation-based (vitiVleresimit): completed, annulled (#1 CHANGED), kursimi, fondi vlerësuar
+  const completedByYear = {}, fondiVlerByYear = {}, annulledByYear = {}, annulledFondiByYear = {};
   const totKurs      = totalsByYear(completed, 'kursimi',    'vitiVleresimit');
   const totFondiVler = totalsByYear(completed, 'fondiLimit', 'vitiVleresimit');
   years.forEach(y => {
     const yComp = completed.filter(r => (r.vitiVleresimit || r.year) === y);
-    completedByYear[y] = yComp.length;
-    fondiVlerByYear[y] = grandTotal(yComp, 'fondiLimit');
+    // CHANGE #1: annulled now by vitiVleresimit
+    const yAnn  = annulled.filter(r => (r.vitiVleresimit || r.year) === y);
+    completedByYear[y]    = yComp.length;
+    fondiVlerByYear[y]    = grandTotal(yComp, 'fondiLimit');
+    annulledByYear[y]     = yAnn.length;
+    annulledFondiByYear[y]= grandTotal(yAnn, 'fondiLimit');
   });
 
-  // Build live chart data per year
+  // ── Build live chart data per year ────────────────────────
   const liveByYear = years.map(y => {
-    const yShp  = rows.filter(r => (r.vitiShpalljes  || r.year) === y);
-    const yAnn  = annulled.filter(r => (r.vitiShpalljes || r.year) === y);
-    const yComp = completed.filter(r => (r.vitiVleresimit || r.year) === y);
+    // Proclaimed this year (vitiShpalljes)
+    const yShp   = rows.filter(r => (r.vitiShpalljes  || r.year) === y);
     const fondiP = fondiProkByYear[y] || 0;
+
+    // Evaluated this year (vitiVleresimit) — CHANGE #1: annulled also by vitiVleresimit
+    const yComp  = completed.filter(r => (r.vitiVleresimit || r.year) === y);
+    const yAnn   = annulled.filter(r => (r.vitiVleresimit  || r.year) === y);
     const kurs   = totKurs[y] || 0;
+    const fondiV = totFondiVler[y] || 0;
 
-    // ofertave & operatoreve: ONLY from completed procedures (per user request)
-    const avgOf = yComp.length > 0 ? yComp.reduce((s,r) => s + Number(r.nrOfertave    ||0),0) / yComp.length : 0;
-    const avgOe = yComp.length > 0 ? yComp.reduce((s,r) => s + Number(r.nrOperatoreve ||0),0) / yComp.length : 0;
+    // ofertave & operatoreve: only completed
+    const avgOf = yComp.length > 0 ? yComp.reduce((s,r) => s+Number(r.nrOfertave    ||0),0)/yComp.length : 0;
+    const avgOe = yComp.length > 0 ? yComp.reduce((s,r) => s+Number(r.nrOperatoreve ||0),0)/yComp.length : 0;
 
-    // suksesPct = (total - annulled) / total — per user request
-    const sukses     = yShp.length - yAnn.length;
-    const suksesPct  = yShp.length > 0 ? (sukses / yShp.length * 100) : 0;
-    const annPct     = yShp.length > 0 ? (yAnn.length  / yShp.length * 100) : 0;
-    // kursimiPct = kursimi / fondi prokuruar (consistent with prokuruar KPI)
-    const kursimiPct = fondiP > 0 ? (kurs / fondiP * 100) : 0;
-    const avgKursimiPct = yComp.length > 0 ? yComp.reduce((s,r) => s+(Number(r.kursimiPct)||0),0)/yComp.length : 0;
+    // sukses = total proclaimed - annulled (by vitiVleresimit per CHANGE #1)
+    // We use yShp as the "total" base and yAnn (vlerësimit) as annulled
+    const sukses    = yShp.length - yAnn.length;
+    const suksesPct = yShp.length > 0 ? (sukses / yShp.length * 100) : 0;
+    // CHANGE #1: annulledPct now uses vitiVleresimit annulled / total proclaimed
+    const annPct    = yShp.length > 0 ? (yAnn.length / yShp.length * 100) : 0;
 
-    // Procedures per month (by dataShpalljes)
-    const months = new Set();
-    yShp.forEach(r => { if (r.dataShpalljes) { const p = r.dataShpalljes.split('/'); if (p.length===3) months.add(p[0]+'/'+p[2]); } });
-    const nMonths = months.size || 1;
+    // CHANGE #4: kursimiVlerPct = kursimi / fondi VLERËSUAR (not prokuruar)
+    const kursimiVlerPct = fondiV > 0 ? (kurs / fondiV * 100) : 0;
+
+    const avgKursimiPct = yComp.length > 0
+      ? yComp.reduce((s,r) => s+(Number(r.kursimiPct)||0),0)/yComp.length : 0;
+
+    // CHANGE #2: procPerMonth and fondiPerMonth = value / months up to last proclamation month in that year
+    // Find the last month with a proclamation in this year
+    const monthsSet = new Set();
+    yShp.forEach(r => {
+      if (r.dataShpalljes) {
+        const p = r.dataShpalljes.split('/');
+        if (p.length === 3) monthsSet.add(Number(p[0])); // collect month numbers
+      }
+    });
+    // nMonths = the highest month number seen (e.g. if last proc is in Nov → 11 months)
+    const nMonths    = monthsSet.size > 0 ? Math.max(...monthsSet) : 12;
+    const procPerMonth  = parseFloat((yShp.length / nMonths).toFixed(1));
+    const fondiPerMonth = parseFloat((fondiP / nMonths / 100_000_000).toFixed(2));
+
+    // CHANGE #3: fondi vlerësuar in mln € for new chart
+    const fondiVlerMlnEur = parseFloat(formatMlnEur(fondiV));
 
     return {
       label: String(y), isObp: true,
-      procedures:    yShp.length,
-      annulled:      yAnn.length,
-      completed:     yComp.length,
-      fondiMlnEur:   parseFloat(formatMlnEur(fondiP)),
-      kursimiMlnEur: parseFloat(formatMlnEur(kurs)),
-      ofertave:      parseFloat(avgOf.toFixed(1)),
-      operatoreve:   parseFloat(avgOe.toFixed(1)),
-      sukses:        sukses,
-      suksesPct:     parseFloat(suksesPct.toFixed(1)),
-      annulledPct:   parseFloat(annPct.toFixed(1)),
-      kursimiPct:    parseFloat(kursimiPct.toFixed(2)),
-      avgKursimiPct: parseFloat(avgKursimiPct.toFixed(2)),
-      procPerMonth:  parseFloat((yShp.length / nMonths).toFixed(1)),
-      fondiPerMonth: parseFloat((fondiP / nMonths / 100_000_000).toFixed(2)),
+      procedures:      yShp.length,
+      annulled:        yAnn.length,       // now by vitiVleresimit
+      completed:       yComp.length,
+      fondiMlnEur:     parseFloat(formatMlnEur(fondiP)),
+      fondiVlerMlnEur, // CHANGE #3
+      kursimiMlnEur:   parseFloat(formatMlnEur(kurs)),
+      ofertave:        parseFloat(avgOf.toFixed(1)),
+      operatoreve:     parseFloat(avgOe.toFixed(1)),
+      sukses,
+      suksesPct:       parseFloat(suksesPct.toFixed(1)),
+      annulledPct:     parseFloat(annPct.toFixed(1)),  // CHANGE #1
+      kursimiVlerPct:  parseFloat(kursimiVlerPct.toFixed(2)), // CHANGE #4
+      avgKursimiPct:   parseFloat(avgKursimiPct.toFixed(2)),
+      procPerMonth,    // CHANGE #2
+      fondiPerMonth,   // CHANGE #2
     };
   });
 
   function merged(field) {
     return [
-      ...HISTORY.map(h => ({ label: h.label, value: field === 'sukses' ? (h.procedures - h.annulled) : (h[field] ?? 0), isObp: false })),
+      ...HISTORY.map(h => ({
+        label: h.label,
+        value: field === 'sukses' ? (h.procedures - h.annulled) : (h[field] ?? 0),
+        isObp: false,
+      })),
       ...liveByYear.map(l => ({ label: l.label, value: l[field] ?? 0, isObp: true })),
     ];
   }
 
+  // Dual bar: total vs annulled (CHANGE #1: annulled by vitiVleresimit in live data)
   function mergedDual() {
     return [
       ...HISTORY.map(h => ({ label:h.label, total:h.procedures, annulled:h.annulled, isObp:false })),
@@ -139,6 +168,7 @@ export default function DashboardPage({ rows }) {
         </p>
       </header>
 
+      {/* ── KPI Cards ── */}
       <div className="dash-kpis">
         <div className="kpi kpi-blue">
           <div className="kpi-label">Procedura Gjithsej (viti shpalljes)</div>
@@ -151,8 +181,9 @@ export default function DashboardPage({ rows }) {
           <div className="kpi-sub">{rows.length>0?(completed.length/rows.length*100).toFixed(1):0}% e totalit</div>
           <div className="sc-years">{years.map(y => <div className="sc-year-box" key={y}><span className="sc-year-label">{y}</span><span className="sc-year-value">{completedByYear[y]}</span></div>)}</div>
         </div>
+        {/* CHANGE #1: label updated to viti vlerësimit */}
         <div className="kpi kpi-red">
-          <div className="kpi-label">✗ Të Anulluara (viti shpalljes)</div>
+          <div className="kpi-label">✗ Të Anulluara (viti vlerësimit)</div>
           <div className="kpi-value">{annulled.length}</div>
           <div className="kpi-sub">{annulledPct}% · {formatMlnEur(annulledFondi)} mln €</div>
           <div className="sc-years">{years.map(y => <div className="sc-year-box" key={y}><span className="sc-year-label">{y}</span><span className="sc-year-value">{annulledByYear[y]}</span><span className="sc-year-detail">{formatMlnEur(annulledFondiByYear[y])} mln €</span></div>)}</div>
@@ -177,44 +208,108 @@ export default function DashboardPage({ rows }) {
         </div>
       </div>
 
+      {/* ── Charts ── */}
       <div className="dash-grid">
-        <ChartCard title="Numri i Procedurave (viti shpalljes)"><BarC data={merged('procedures')} fmt={v=>`${v}`} label="Procedura" /><Legend2 /></ChartCard>
-        <ChartCard title="Fonde të Prokuruara (mln €) — viti shpalljes"><BarC data={merged('fondiMlnEur')} fmt={v=>`${v} mln €`} label="Fondi" /><Legend2 /></ChartCard>
-        <ChartCard title="Kursimet (mln €) — vetëm ✓ të përfunduarat" accent><BarC data={merged('kursimiMlnEur')} fmt={v=>`${v} mln €`} label="Kursimi" green /><Legend2 green /></ChartCard>
-        <ChartCard title="Numri Mesatar i Ofertave — vetëm ✓ të përfunduarat"><BarC data={merged('ofertave')} fmt={v=>`${v}`} label="Oferta" amber domain={[0,8]} /><Legend2 amber /></ChartCard>
-        <ChartCard title="Numri Mesatar i Operatorëve Ekonomikë — vetëm ✓ të përfunduarat"><BarC data={merged('operatoreve')} fmt={v=>`${v}`} label="OE" color={PURPLE} /><Legend2 color={PURPLE} /></ChartCard>
-        <ChartCard title="Procedura të Suksesshme (Nr.) = Gjithsej − Anullime (viti shpalljes)"><BarC data={merged('sukses')} fmt={v=>`${v}`} label="Sukses" green /><Legend2 green /></ChartCard>
-        <ChartCard title="Procedura të Suksesshme (%) = (Gjithsej − Anullime) / Gjithsej"><BarC data={merged('suksesPct')} fmt={v=>`${v}%`} label="Sukses %" green /><Legend2 green /></ChartCard>
-        <ChartCard title="Procedura Gjithsej vs Anullime (viti shpalljes)">
+
+        {/* 1 */}
+        <ChartCard title="Numri i Procedurave (viti shpalljes)">
+          <BarC data={merged('procedures')} fmt={v=>`${v}`} label="Procedura" /><Legend2 />
+        </ChartCard>
+
+        {/* 2 */}
+        <ChartCard title="Fonde të Prokuruara (mln €) — viti shpalljes">
+          <BarC data={merged('fondiMlnEur')} fmt={v=>`${v} mln €`} label="Fondi" /><Legend2 />
+        </ChartCard>
+
+        {/* 3 */}
+        <ChartCard title="Kursimet (mln €) — vetëm ✓ të përfunduarat" accent>
+          <BarC data={merged('kursimiMlnEur')} fmt={v=>`${v} mln €`} label="Kursimi" green /><Legend2 green />
+        </ChartCard>
+
+        {/* 4 */}
+        <ChartCard title="Numri Mesatar i Ofertave — vetëm ✓ të përfunduarat">
+          <BarC data={merged('ofertave')} fmt={v=>`${v}`} label="Oferta" amber domain={[0,8]} /><Legend2 amber />
+        </ChartCard>
+
+        {/* 5 */}
+        <ChartCard title="Numri Mesatar i Operatorëve Ekonomikë — vetëm ✓ të përfunduarat">
+          <BarC data={merged('operatoreve')} fmt={v=>`${v}`} label="OE" color={PURPLE} /><Legend2 color={PURPLE} />
+        </ChartCard>
+
+        {/* 6 */}
+        <ChartCard title="Procedura të Suksesshme (Nr.) = Gjithsej − Anullime">
+          <BarC data={merged('sukses')} fmt={v=>`${v}`} label="Sukses" green /><Legend2 green />
+        </ChartCard>
+
+        {/* 7 */}
+        <ChartCard title="Procedura të Suksesshme (%) = (Gjithsej − Anullime) / Gjithsej">
+          <BarC data={merged('suksesPct')} fmt={v=>`${v}%`} label="Sukses %" green /><Legend2 green />
+        </ChartCard>
+
+        {/* 8 — dual bar */}
+        <ChartCard title="Procedura Gjithsej vs Anullime (viti vlerësimit)">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={mergedDual()} margin={{ top:10, right:10, left:0, bottom:40 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#253047" />
               <XAxis dataKey="label" stroke="#7a8ba8" tick={{ fontSize:11, fontFamily:'DM Mono', fill:'#7a8ba8' }} angle={-35} textAnchor="end" interval={0} />
               <YAxis stroke="#7a8ba8" tick={{ fontSize:11, fontFamily:'DM Mono', fill:'#7a8ba8' }} />
               <Tooltip contentStyle={TT} labelStyle={TT_L} itemStyle={TT_ITEM} />
-              <Bar dataKey="total" name="Gjithsej" fill={OBP_CLR} radius={[4,4,0,0]}><LabelList dataKey="total" position="top" style={{ fontSize:10, fill:'#7a8ba8', fontFamily:'DM Mono' }} /></Bar>
-              <Bar dataKey="annulled" name="Anullime" fill={RED} radius={[4,4,0,0]}><LabelList dataKey="annulled" position="top" style={{ fontSize:10, fill:'#ef4444', fontFamily:'DM Mono' }} /></Bar>
+              <Bar dataKey="total"    name="Gjithsej" fill={OBP_CLR} radius={[4,4,0,0]}><LabelList dataKey="total"    position="top" style={{ fontSize:10, fill:'#7a8ba8', fontFamily:'DM Mono' }} /></Bar>
+              <Bar dataKey="annulled" name="Anullime" fill={RED}     radius={[4,4,0,0]}><LabelList dataKey="annulled" position="top" style={{ fontSize:10, fill:'#ef4444', fontFamily:'DM Mono' }} /></Bar>
               <Legend wrapperStyle={{ fontFamily:'DM Mono', fontSize:12, color:'#e8edf5' }} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-        <ChartCard title="Procedura të Anulluara (%) — viti shpalljes"><BarC data={merged('annulledPct')} fmt={v=>`${v}%`} label="Anullime %" color={RED} /><Legend2 color={RED} /></ChartCard>
-        <ChartCard title="Nr. Mesatar i Procedurave në Muaj"><BarC data={merged('procPerMonth')} fmt={v=>`${v}`} label="Proc/muaj" amber /><Legend2 amber /></ChartCard>
-        <ChartCard title="Fondi Mesatar në Muaj (mln €)"><BarC data={merged('fondiPerMonth')} fmt={v=>`${v} mln €`} label="Fond/muaj" /><Legend2 /></ChartCard>
-        <ChartCard title="Kursimi / Fondi i Prokuruar (%)" accent><BarC data={merged('kursimiPct')} fmt={v=>`${v}%`} label="Kursimi %" green /><Legend2 green /></ChartCard>
-        <ChartCard title="Mesatarja në % e Kursimit të Procedurave ✓"><BarC data={merged('avgKursimiPct')} fmt={v=>`${v}%`} label="Mesatare %" color={CYAN} /><Legend2 color={CYAN} /></ChartCard>
+
+        {/* 9 — CHANGE #1: title updated */}
+        <ChartCard title="Procedura të Anulluara (%) — viti vlerësimit">
+          <BarC data={merged('annulledPct')} fmt={v=>`${v}%`} label="Anullime %" color={RED} /><Legend2 color={RED} />
+        </ChartCard>
+
+        {/* 10 — CHANGE #2: procPerMonth = count / last month in year */}
+        <ChartCard title="Nr. Mesatar i Procedurave në Muaj (Gjithsej / Muajt deri në muajin e fundit)">
+          <BarC data={merged('procPerMonth')} fmt={v=>`${v}`} label="Proc/muaj" amber /><Legend2 amber />
+        </ChartCard>
+
+        {/* 11 — CHANGE #2: fondiPerMonth = fondi / last month in year */}
+        <ChartCard title="Fondi Mesatar në Muaj (mln €) — Fondi i Prokuruar / Muajt deri në muajin e fundit">
+          <BarC data={merged('fondiPerMonth')} fmt={v=>`${v} mln €`} label="Fond/muaj" /><Legend2 />
+        </ChartCard>
+
+        {/* 12 — CHANGE #3: new chart — Fondi i Vlerësuar (mln €) */}
+        <ChartCard title="Numri i procedurave të prokurimit të finalizuara (MILION EURO)" accent>
+          <BarC data={merged('fondiVlerMlnEur')} fmt={v=>`${v} mln €`} label="Fondi i Vlerësuar" green /><Legend2 green />
+        </ChartCard>
+
+        {/* 13 — CHANGE #4: kursimi / fondi VLERËSUAR (was prokuruar) */}
+        <ChartCard title="Kursimi / Fondi i Vlerësuar (%)" accent>
+          <BarC data={merged('kursimiVlerPct')} fmt={v=>`${v}%`} label="Kursimi/Vlerësuar %" green /><Legend2 green />
+        </ChartCard>
+
+        {/* 14 */}
+        <ChartCard title="Mesatarja në % e Kursimit të Procedurave ✓">
+          <BarC data={merged('avgKursimiPct')} fmt={v=>`${v}%`} label="Mesatare %" color={CYAN} /><Legend2 color={CYAN} />
+        </ChartCard>
+
+        {/* 15 — CHANGE #5: new chart — Procedura të Përfunduara (Nr.) */}
+        <ChartCard title="Numri i procedurave të prokurimit të FINALIZUARA" accent>
+          <BarC data={merged('completed')} fmt={v=>`${v}`} label="Të Finalizuara" green /><Legend2 green />
+        </ChartCard>
+
+        {/* 16 — Status pie */}
         <ChartCard title="Statusi i Procedurave">
           <ResponsiveContainer width="100%" height={340}>
             <PieChart margin={{ top:10, right:80, left:80, bottom:10 }}>
               <Pie data={statusPie} dataKey="value" nameKey="name" cx="50%" cy="45%" outerRadius={85}
                 label={({ name, percent, x, y, cx }) => (
-                  <text x={x} y={y} fill="#e8edf5" fontSize={12} fontFamily="DM Mono" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                  <text x={x} y={y} fill="#e8edf5" fontSize={12} fontFamily="DM Mono"
+                    textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
                     {`${name}: ${(percent*100).toFixed(0)}%`}
                   </text>
                 )} labelLine={{ stroke:'#7a8ba8' }}>
                 {statusPie.map((_,i) => <Cell key={i} fill={statusColors[i]} />)}
               </Pie>
-              <Tooltip contentStyle={TT} labelStyle={TT_L} itemStyle={TT_ITEM} formatter={(v,n,p) => [`${v} procedura`, p.payload.name]} />
+              <Tooltip contentStyle={{...TT,color:'#e8edf5'}} itemStyle={{color:'#e8edf5'}} formatter={(v,n,p) => [`${v} procedura`, p.payload.name]} />
               <Legend wrapperStyle={{ fontFamily:'DM Mono', fontSize:12, color:'#e8edf5' }} />
             </PieChart>
           </ResponsiveContainer>
@@ -223,6 +318,7 @@ export default function DashboardPage({ rows }) {
             <span className="ann-label">anulluar ({annulled.length}/{rows.length}) · {formatMlnEur(annulledFondi)} mln €</span>
           </div>
         </ChartCard>
+
       </div>
     </main>
   );
