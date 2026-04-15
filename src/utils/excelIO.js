@@ -18,6 +18,7 @@ export const COLUMNS = [
   { key: 'vitiVleresimit',label: 'Viti Vleresimit'          },
   { key: 'ePerfunduar',   label: 'E Perfunduar (1=po)'      },
   { key: 'eAnulluar',     label: 'E Anulluar (1=po)'        },
+  { key: 'notes',         label: 'Shenime'                  },
   { key: 'editedBy',      label: 'Redaktuar nga'            },
   { key: 'lastEditedAt',  label: 'Redaktuar me'             },
 ];

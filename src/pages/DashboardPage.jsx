@@ -7,16 +7,18 @@ import { formatNum, formatMlnEur, grandTotal, totalsByYear, uniqueYears } from '
 // Historical data
 // NOTE: annulled/annulledPct are now by vitiVleresimit (change #1)
 const HISTORY = [
-  { label:'2019',        procedures:158, annulled:51,  completed:107, fondiMlnEur:85,  fondiVlerMlnEur:85,  kursimiMlnEur:3.3,  ofertave:3.7, operatoreve:3.7, procPerMonth:13.2, fondiPerMonth:7.08, annulledPct:32.28, suksesPct:67.72, kursimiVlerPct:3.88  },
-  { label:'2020',        procedures:267, annulled:86,  completed:181, fondiMlnEur:47,  fondiVlerMlnEur:47,  kursimiMlnEur:5.1,  ofertave:3.8, operatoreve:3.8, procPerMonth:22.3, fondiPerMonth:3.92, annulledPct:32.21, suksesPct:67.79, kursimiVlerPct:10.85 },
-  { label:'2021',        procedures:187, annulled:64,  completed:123, fondiMlnEur:37,  fondiVlerMlnEur:37,  kursimiMlnEur:4.6,  ofertave:3.6, operatoreve:3.6, procPerMonth:15.6, fondiPerMonth:3.08, annulledPct:34.22, suksesPct:65.78, kursimiVlerPct:12.43 },
-  { label:'2022',        procedures:204, annulled:67,  completed:137, fondiMlnEur:58,  fondiVlerMlnEur:58,  kursimiMlnEur:4.6,  ofertave:3.3, operatoreve:3.3, procPerMonth:17.0, fondiPerMonth:4.83, annulledPct:32.84, suksesPct:67.16, kursimiVlerPct:7.93  },
-  { label:'2023',        procedures:171, annulled:74,  completed:97,  fondiMlnEur:39,  fondiVlerMlnEur:39,  kursimiMlnEur:2.7,  ofertave:2.7, operatoreve:2.7, procPerMonth:14.3, fondiPerMonth:3.25, annulledPct:43.27, suksesPct:56.73, kursimiVlerPct:6.92  },
-  { label:'OBP 8M 2024', procedures:314, annulled:55,  completed:259, fondiMlnEur:168, fondiVlerMlnEur:168, kursimiMlnEur:18.4, ofertave:4.7, operatoreve:4.7, procPerMonth:34.9, fondiPerMonth:21.0, annulledPct:16.88, suksesPct:83.12, kursimiVlerPct:10.95 },
+  { label:'2019',        procedures:158, annulled:51,  completed:107, fondiMlnEur:85,  fondiVlerMlnEur:85,  kursimiMlnEur:3.3,  ofertave:3.7, operatoreve:3.7, procPerMonth:13.2, fondiPerMonth:7.08, annulledPct:32.28, suksesPct:67.72, kursimiVlerPct:3.88,  avgKursimiPct:11 },
+  { label:'2020',        procedures:267, annulled:86,  completed:181, fondiMlnEur:47,  fondiVlerMlnEur:47,  kursimiMlnEur:5.1,  ofertave:3.8, operatoreve:3.8, procPerMonth:22.3, fondiPerMonth:3.92, annulledPct:32.21, suksesPct:67.79, kursimiVlerPct:10.85, avgKursimiPct:20 },
+  { label:'2021',        procedures:187, annulled:64,  completed:123, fondiMlnEur:37,  fondiVlerMlnEur:37,  kursimiMlnEur:4.6,  ofertave:3.6, operatoreve:3.6, procPerMonth:15.6, fondiPerMonth:3.08, annulledPct:34.22, suksesPct:65.78, kursimiVlerPct:12.43, avgKursimiPct:22 },
+  { label:'2022',        procedures:204, annulled:67,  completed:137, fondiMlnEur:58,  fondiVlerMlnEur:58,  kursimiMlnEur:4.6,  ofertave:3.3, operatoreve:3.3, procPerMonth:17.0, fondiPerMonth:4.83, annulledPct:32.84, suksesPct:67.16, kursimiVlerPct:7.93,  avgKursimiPct:17 },
+  { label:'2023',        procedures:171, annulled:74,  completed:97,  fondiMlnEur:39,  fondiVlerMlnEur:39,  kursimiMlnEur:2.7,  ofertave:2.7, operatoreve:2.7, procPerMonth:14.3, fondiPerMonth:3.25, annulledPct:43.27, suksesPct:56.73, kursimiVlerPct:6.92,  avgKursimiPct:16 },
+  { label:'OBP 8M 2024', procedures:314, annulled:55,  completed:259, fondiMlnEur:168, fondiVlerMlnEur:168, kursimiMlnEur:18.4, ofertave:4.7, operatoreve:4.7, procPerMonth:34.9, fondiPerMonth:21.0, annulledPct:16.88, suksesPct:83.12, kursimiVlerPct:10.95, avgKursimiPct:17 },
 ];
+// Years in HISTORY are fixed/read-only — live data from the app starts from 2025+
+const HISTORY_YEARS = new Set(HISTORY.map(h => h.label));
 
 const OBP_CLR  = '#3b82f6';
-const HIST_CLR = '#374151';
+const HIST_CLR = null; // Each chart uses its own color for historical bars too
 const GREEN    = '#10b981';
 const AMBER    = '#f59e0b';
 const RED      = '#ef4444';
@@ -67,7 +69,9 @@ export default function DashboardPage({ rows }) {
   });
 
   // ── Build live chart data per year ────────────────────────
-  const liveByYear = years.map(y => {
+  // Skip years already in HISTORY — those are fixed/read-only
+  // Exclude HISTORY years AND bare year 2024 (shown as 'OBP 8M 2024' in history)
+  const liveByYear = years.filter(y => !HISTORY_YEARS.has(String(y)) && String(y) !== '2024').map(y => {
     // Proclaimed this year (vitiShpalljes)
     const yShp   = rows.filter(r => (r.vitiShpalljes  || r.year) === y);
     const fondiP = fondiProkByYear[y] || 0;
@@ -166,6 +170,15 @@ export default function DashboardPage({ rows }) {
           Krahasim historik · {rows.length} procedura ·
           Prokurimi sipas <strong>vitit shpalljes</strong> · Vlerësimi sipas <strong>vitit vlerësimit</strong>
         </p>
+        {/* PDF export button — feature #1 */}
+        <button
+          className="btn btn-pdf no-print"
+          onClick={() => window.print()}
+          style={{ marginTop: 12 }}
+          title="Shtyp ose Ruaj si PDF"
+        >
+          🖨️ Shtyp / Ruaj si PDF
+        </button>
       </header>
 
       {/* ── KPI Cards ── */}
@@ -254,8 +267,14 @@ export default function DashboardPage({ rows }) {
               <XAxis dataKey="label" stroke="#7a8ba8" tick={{ fontSize:11, fontFamily:'DM Mono', fill:'#7a8ba8' }} angle={-35} textAnchor="end" interval={0} />
               <YAxis stroke="#7a8ba8" tick={{ fontSize:11, fontFamily:'DM Mono', fill:'#7a8ba8' }} />
               <Tooltip contentStyle={TT} labelStyle={TT_L} itemStyle={TT_ITEM} />
-              <Bar dataKey="total"    name="Gjithsej" fill={OBP_CLR} radius={[4,4,0,0]}><LabelList dataKey="total"    position="top" style={{ fontSize:10, fill:'#7a8ba8', fontFamily:'DM Mono' }} /></Bar>
-              <Bar dataKey="annulled" name="Anullime" fill={RED}     radius={[4,4,0,0]}><LabelList dataKey="annulled" position="top" style={{ fontSize:10, fill:'#ef4444', fontFamily:'DM Mono' }} /></Bar>
+              <Bar dataKey="total" name="Gjithsej" radius={[4,4,0,0]}>
+                {mergedDual().map((e,i) => <Cell key={i} fill={OBP_CLR} />)}
+                <LabelList dataKey="total" position="top" style={{ fontSize:10, fill:'#7a8ba8', fontFamily:'DM Mono' }} />
+              </Bar>
+              <Bar dataKey="annulled" name="Anullime" radius={[4,4,0,0]}>
+                {mergedDual().map((e,i) => <Cell key={i} fill={RED} />)}
+                <LabelList dataKey="annulled" position="top" style={{ fontSize:10, fill:'#ef4444', fontFamily:'DM Mono' }} />
+              </Bar>
               <Legend wrapperStyle={{ fontFamily:'DM Mono', fontSize:12, color:'#e8edf5' }} />
             </BarChart>
           </ResponsiveContainer>
@@ -298,19 +317,46 @@ export default function DashboardPage({ rows }) {
 
         {/* 16 — Status pie */}
         <ChartCard title="Statusi i Procedurave">
-          <ResponsiveContainer width="100%" height={340}>
-            <PieChart margin={{ top:10, right:80, left:80, bottom:10 }}>
-              <Pie data={statusPie} dataKey="value" nameKey="name" cx="50%" cy="45%" outerRadius={85}
-                label={({ name, percent, x, y, cx }) => (
-                  <text x={x} y={y} fill="#e8edf5" fontSize={12} fontFamily="DM Mono"
-                    textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-                    {`${name}: ${(percent*100).toFixed(0)}%`}
-                  </text>
-                )} labelLine={{ stroke:'#7a8ba8' }}>
+          {/* Increased height + radius so labels don't get cut off when printing */}
+          <ResponsiveContainer width="100%" height={420}>
+            <PieChart margin={{ top:20, right:120, left:120, bottom:40 }}>
+              <Pie
+                data={statusPie}
+                dataKey="value"
+                nameKey="name"
+                cx="50%" cy="42%"
+                outerRadius={110}
+                labelLine={{ stroke:'#7a8ba8', strokeWidth:1.5 }}
+                label={({ name, percent, x, y, cx }) => {
+                  // Split long names onto two lines
+                  const parts = name.split(' ');
+                  const mid   = Math.ceil(parts.length / 2);
+                  const line1 = parts.slice(0, mid).join(' ');
+                  const line2 = parts.slice(mid).join(' ');
+                  const anchor = x > cx ? 'start' : 'end';
+                  return (
+                    <text x={x} y={y} fill="#e8edf5" fontSize={13} fontFamily="DM Mono"
+                      textAnchor={anchor} dominantBaseline="central" fontWeight="600">
+                      <tspan x={x} dy="-0.5em">{line1}</tspan>
+                      {line2 && <tspan x={x} dy="1.3em">{line2}</tspan>}
+                      <tspan x={x} dy="1.3em" fontSize={12} fontWeight="400">
+                        {(percent*100).toFixed(0)}%
+                      </tspan>
+                    </text>
+                  );
+                }}
+              >
                 {statusPie.map((_,i) => <Cell key={i} fill={statusColors[i]} />)}
               </Pie>
-              <Tooltip contentStyle={{...TT,color:'#e8edf5'}} itemStyle={{color:'#e8edf5'}} formatter={(v,n,p) => [`${v} procedura`, p.payload.name]} />
-              <Legend wrapperStyle={{ fontFamily:'DM Mono', fontSize:12, color:'#e8edf5' }} />
+              <Tooltip
+                contentStyle={{...TT,color:'#e8edf5'}}
+                itemStyle={{color:'#e8edf5'}}
+                formatter={(v,n,p) => [`${v} procedura`, p.payload.name]}
+              />
+              <Legend
+                wrapperStyle={{ fontFamily:'DM Mono', fontSize:13, color:'#e8edf5', paddingTop:8 }}
+                formatter={(value) => <span style={{color:'#e8edf5', fontSize:13}}>{value}</span>}
+              />
             </PieChart>
           </ResponsiveContainer>
           <div className="annulled-stat">
@@ -338,7 +384,7 @@ function BarC({ data, fmt, label, green, amber, domain, color }) {
         <YAxis stroke="#7a8ba8" tick={{ fontSize:11, fontFamily:'DM Mono', fill:'#7a8ba8' }} domain={domain} />
         <Tooltip contentStyle={TT} labelStyle={TT_L} itemStyle={TT_ITEM} formatter={v=>[fmt(v), label]} />
         <Bar dataKey="value" radius={[4,4,0,0]}>
-          {data.map((e,i) => <Cell key={i} fill={e.isObp ? clr : HIST_CLR} />)}
+          {data.map((e,i) => <Cell key={i} fill={clr} />)}
           <LabelList dataKey="value" position="top" style={{ fontSize:10, fill:'#7a8ba8', fontFamily:'DM Mono' }} />
         </Bar>
       </BarChart>
@@ -350,7 +396,7 @@ function Legend2({ green, amber, color }) {
   const clr = color || (green ? GREEN : amber ? AMBER : OBP_CLR);
   return (
     <div className="chart-legend">
-      <span className="legend-dot" style={{ background: HIST_CLR }} /> 2019–2023 (Para OBP)
+      <span className="legend-dot" style={{ background: clr }} /> 2019–2024 (Para OBP/i pandryshuar)
       <span className="legend-dot" style={{ background: clr }} /> OBP (2024–2026)
     </div>
   );

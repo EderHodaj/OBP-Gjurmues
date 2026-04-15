@@ -6,7 +6,13 @@ import { useBudget } from './hooks/useBudget';
 import './App.css';
 
 export default function App() {
-  const { rows, username, setUsername, updateCell, toggleFlag, addRow, deleteRow, replaceRows, doReset, lastEditedCell } = useBudget();
+  const {
+    rows, username, setUsername,
+    updateCell, toggleFlag,
+    addRow, deleteRow, replaceRows, doReset,
+    lastEditedCell,
+    undo, canUndo,       // ← wired up
+  } = useBudget();
 
   return (
     <BrowserRouter>
@@ -21,6 +27,8 @@ export default function App() {
             onDeleteRow={deleteRow}
             onImport={replaceRows}
             onReset={doReset}
+            onUndo={undo}
+            canUndo={canUndo}
             lastEditedCell={lastEditedCell}
           />
         } />

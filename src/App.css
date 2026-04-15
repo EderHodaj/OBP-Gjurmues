@@ -243,3 +243,177 @@
 .fg-table tr:hover td    { background: rgba(255,255,255,.02); }
 .fg-required td          { background: rgba(16,185,129,.04) !important; }
 .fg-required td:first-child { color: var(--accent2); }
+
+/* ── UNDO BUTTON ── */
+.btn-undo { background:transparent; border:1px solid var(--accent3); color:var(--accent3); }
+.btn-undo:hover:not(:disabled) { background:rgba(245,158,11,.1); }
+.btn-undo:disabled { opacity:.35; cursor:default; }
+
+/* ── NOTES CELL ── */
+.ec-notes { min-width:180px; max-width:260px; }
+.ec-notes-disp {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 12px;
+}
+.ec-notes-disp:not(:empty) { color: var(--accent3); font-style: normal; }
+.ec-textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 7px 10px;
+  outline: none;
+  resize: vertical;
+  min-height: 64px;
+  border-radius: 0;
+}
+
+/* ── KEYBOARD NAV HINT ── */
+.keyboard-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 4px 0 8px;
+  font-family: var(--font-mono);
+}
+.keyboard-hint kbd {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 10px;
+  color: var(--text);
+}
+
+/* ── PRINT / PDF STYLES ── */
+/* When user clicks "Print / Save as PDF", these rules apply */
+@media print {
+
+  /* ── Hide UI chrome ── */
+  .navbar, .iebar-wrap, .table-filters, .pagination,
+  .scroll-top-mirror, .btn-del, .col-del, .col-meta,
+  .col-flag, .no-print, .btn-pdf, .annulled-stat {
+    display: none !important;
+  }
+
+  /* ── Page setup ── */
+  @page { size: A4 landscape; margin: 12mm; }
+
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-size: 11px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page { padding: 8px !important; max-width: 100% !important; }
+  .page-title { color: #000 !important; font-size: 18px !important; }
+  .page-sub   { color: #444 !important; font-size: 11px !important; }
+
+  /* ── KPI cards ── */
+  .dash-kpis { display: flex !important; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .kpi {
+    background: #f0f4ff !important;
+    border: 1px solid #99aacc !important;
+    flex: 1 1 130px;
+    break-inside: avoid;
+    padding: 8px 10px !important;
+  }
+  .kpi-blue  { border-top: 3px solid #2563eb !important; }
+  .kpi-green { border-top: 3px solid #059669 !important; }
+  .kpi-amber { border-top: 3px solid #d97706 !important; }
+  .kpi-red   { border-top: 3px solid #dc2626 !important; }
+  .kpi-label { color: #444 !important; font-size: 9px  !important; }
+  .kpi-value { color: #000 !important; font-size: 15px !important; }
+  .kpi-sub   { color: #555 !important; font-size: 9px  !important; }
+  .sc-year-box   { background: #e8eef8 !important; border: 1px solid #aabbdd !important; }
+  .sc-year-label { color: #1d4ed8 !important; }
+  .sc-year-value { color: #000    !important; }
+  .sc-year-detail{ color: #444    !important; }
+
+  /* ── Chart grid: 2 columns ── */
+  .dash-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* ── Chart cards ── */
+  .chart-card {
+    background: #ffffff !important;
+    border: 1px solid #bbccdd !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding: 10px !important;
+  }
+  .chart-card-accent { border: 1px solid #059669 !important; }
+  .chart-title {
+    color: #000 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* ── Make ALL recharts text dark for print ── */
+  .recharts-text,
+  .recharts-cartesian-axis-tick-value,
+  .recharts-label,
+  .recharts-legend-item-text,
+  text {
+    fill: #111111 !important;
+    color: #111111 !important;
+  }
+
+  /* Bar value labels on top of bars */
+  .recharts-label-list text,
+  .recharts-cartesian-axis-tick text {
+    fill: #222222 !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+  }
+
+  /* Grid lines lighter for print */
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    stroke: #dddddd !important;
+  }
+
+  /* Axes lines */
+  .recharts-cartesian-axis-line,
+  .recharts-cartesian-axis-tick-line {
+    stroke: #888888 !important;
+  }
+
+  /* Chart backgrounds white */
+  .recharts-wrapper,
+  .recharts-surface,
+  .recharts-responsive-container {
+    background: white !important;
+  }
+
+  /* Legend text dark */
+  .recharts-legend-item-text {
+    color: #111 !important;
+    fill:  #111 !important;
+  }
+
+  /* chart-legend helper div */
+  .chart-legend { color: #333 !important; font-size: 10px !important; }
+  .legend-dot   { opacity: 1 !important; }
+
+  /* Pie chart labels */
+  .recharts-pie-label-text text,
+  .recharts-pie-label-line { fill: #111 !important; stroke: #666 !important; }
+}
+
+/* PDF button */
+.btn-pdf { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-size: 13px; }
+.btn-pdf:hover { background: var(--border); }
