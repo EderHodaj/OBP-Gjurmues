@@ -18,7 +18,6 @@ export const COLUMNS = [
   { key: 'vitiVleresimit',label: 'Viti Vleresimit'          },
   { key: 'ePerfunduar',   label: 'E Perfunduar (1=po)'      },
   { key: 'eAnulluar',     label: 'E Anulluar (1=po)'        },
-  { key: 'notes',         label: 'Shenime'                  },
   { key: 'editedBy',      label: 'Redaktuar nga'            },
   { key: 'lastEditedAt',  label: 'Redaktuar me'             },
 ];
@@ -64,7 +63,17 @@ function toNum(val) { if (typeof val === 'number') return val; return parseFloat
 function toBool(val) { if (typeof val === 'boolean') return val; if (typeof val === 'number') return val===1; const s = String(val).toLowerCase().trim(); return s==='1'||s==='true'||s==='po'||s==='yes'; }
 
 export function exportToExcel(rows, filename = 'OBP_Savings') {
-  const data = rows.map(row => { const obj = {}; for (const col of COLUMNS) { let val = row[col.key]; if (col.key==='ePerfunduar'||col.key==='eAnulluar') val = val?1:0; obj[col.label] = val ?? ''; } return obj; });
+  const data = rows.map(row => {
+    const obj = {};
+    for (const col of COLUMNS) {
+      let val = row[col.key];
+      if (col.key === 'ePerfunduar' || col.key === 'eAnulluar') val = val ? 1 : 0;
+      // Annulled procedures: kursimi and kursimiPct default to 0
+      if (row.eAnulluar && (col.key === 'kursimi' || col.key === 'kursimiPct')) val = 0;
+      obj[col.label] = val ?? '';
+    }
+    return obj;
+  });
   const completed = rows.filter(r => r.ePerfunduar && !r.eAnulluar);
   const tf = rows.reduce((s,r) => s+toNum(r.fondiLimit),0);
   const tk = completed.reduce((s,r) => s+toNum(r.kursimi),0);

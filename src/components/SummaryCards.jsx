@@ -1,9 +1,9 @@
-import { grandTotal, formatNum, formatMlnEur, uniqueYears } from '../utils/calculations';
+import { grandTotal, formatNum, formatMlnEur, uniqueYears, totalsByYear } from '../utils/calculations';
 
 export default function SummaryCards({ rows }) {
   const completed = rows.filter(r =>  r.ePerfunduar && !r.eAnulluar);
   const annulled  = rows.filter(r =>  r.eAnulluar);
-  const totalProkuruar = grandTotal(rows, 'fondiLimit');
+  const totalProkuruar = grandTotal(rows,      'fondiLimit');
   const totalVleresuar = grandTotal(completed, 'fondiLimit');
   const totalKursimi   = grandTotal(completed, 'kursimi');
   const avgPct         = totalVleresuar > 0 ? (totalKursimi / totalVleresuar * 100) : 0;
@@ -12,14 +12,16 @@ export default function SummaryCards({ rows }) {
   const years = uniqueYears(rows);
 
   const countByYear = {}, completedByYear = {}, annulledByYear = {}, annulledFondiByYear = {};
-  const fondiProkByYear = {}, fondiVlerByYear = {};
+  const fondiProkByYear = {}, fondiVlerByYear = {}, kursimiByYear = {};
+
   years.forEach(y => {
-    countByYear[y] = rows.filter(r => (r.vitiShpalljes || r.year) === y).length;
-    completedByYear[y] = completed.filter(r => (r.vitiVleresimit || r.year) === y).length;
-    annulledByYear[y] = annulled.filter(r => (r.vitiVleresimit || r.year) === y).length;
+    countByYear[y]         = rows.filter(r => (r.vitiShpalljes || r.year) === y).length;
+    completedByYear[y]     = completed.filter(r => (r.vitiVleresimit || r.year) === y).length;
+    annulledByYear[y]      = annulled.filter(r => (r.vitiVleresimit || r.year) === y).length;
     annulledFondiByYear[y] = grandTotal(annulled.filter(r => (r.vitiVleresimit || r.year) === y), 'fondiLimit');
-    fondiProkByYear[y] = grandTotal(rows.filter(r => (r.vitiShpalljes || r.year) === y), 'fondiLimit');
-    fondiVlerByYear[y] = grandTotal(completed.filter(r => (r.vitiVleresimit || r.year) === y), 'fondiLimit');
+    fondiProkByYear[y]     = grandTotal(rows.filter(r => (r.vitiShpalljes || r.year) === y), 'fondiLimit');
+    fondiVlerByYear[y]     = grandTotal(completed.filter(r => (r.vitiVleresimit || r.year) === y), 'fondiLimit');
+    kursimiByYear[y]       = grandTotal(completed.filter(r => (r.vitiVleresimit || r.year) === y), 'kursimi');
   });
 
   return (
@@ -54,6 +56,8 @@ export default function SummaryCards({ rows }) {
         <div className="sc-label">Kursimi (✓ përfunduara)</div>
         <div className="sc-value">{formatMlnEur(totalKursimi)}<span className="sc-unit"> mln €</span></div>
         <div className="sc-sub">Mesatare: {avgPct.toFixed(2)}%</div>
+        {/* Per-year kursimi breakdown — same style as other cards */}
+        <div className="sc-years">{years.map(y => <div className="sc-year-box" key={y}><span className="sc-year-label">{y}</span><span className="sc-year-value">{formatMlnEur(kursimiByYear[y])} mln €</span></div>)}</div>
       </div>
     </div>
   );
