@@ -1,84 +1,91 @@
-# OBP — Gjurmues i Kursimeve v2.0
+# OBP Savings Tracker v3.0 — LAN Setup
 
-Aplikacion React + Vite për gjurmimin e kursimeve nga procedurat e prokurimit (207 rreshta nga fleta SAVINGS e Excel-it tuaj).
-
----
-
-## 🚀 Si të nisni projektin
-
-### Hapi 1 — Instaloni Node.js (nëse nuk e keni)
-Shkarkoni nga https://nodejs.org (zgjidhni versionin LTS).
-
-### Hapi 2 — Hapni terminalin dhe navigoni te dosja e projektit
+## Architecture
 ```
-cd budget-tracker
+SERVER PC                          OTHER PCs ON LAN
+├── server/server.js (port 3001)   → open browser: http://SERVER_IP:5173
+├── server/db.sqlite (database)
+└── npm run dev (React, port 5173)
 ```
 
-### Hapi 3 — Instaloni paketat
+## Setup on the SERVER PC
+
+### Step 1 — Install dependencies
+
+Open two terminals in the project folder.
+
+**Terminal 1 — Server:**
+```
+cd server
+npm install
+node server.js
+```
+You will see: `OBP Savings Tracker — Server started`
+
+**Terminal 2 — React app:**
 ```
 npm install
-```
-
-### Hapi 4 — Nisni aplikacionin
-```
 npm run dev
 ```
-Hapni shfletuesin te: **http://localhost:5173**
+You will see: `Local: http://localhost:5173`
 
----
+### Step 2 — Find your IP address
 
-## ✅ Funksionalitete
-
-### Tabela (faqja kryesore)
-- **207 rreshta** nga fleta SAVINGS e Excel-it tuaj, të ngarkuara automatikisht
-- **Qeliza të redaktueshme** — klikoni çdo qelizë për të ndryshuar vlerën
-- **Kursimi llogaritet automatikisht** kur ndryshoni Fondi Limit ose Vlera e Fituesit
-- **Regjistrim ndryshimesh** — ruhet kush dhe kur bëri çdo ndryshim
-- **Filtrime** sipas vitit, llojit të procedurës, dhe kërkimit tekstual
-- **Renditje** sipas çdo kolone (klikoni kokën e kolonës)
-- **Faqëzim** — 50 rreshta për faqe
-
-### Importo / Eksporto Excel
-- **⬆ Importo Excel** — ngarkoni çdo skedar .xlsx me kolonat e njëjta
-- **⬇ Shkarko Excel** — shkarkoni tabelën aktuale si .xlsx me totale
-- **↺ Rivendos** — kthehet te 207 rreshtat origjinalë
-
-### Paneli (Dashboard)
-- **4 grafikë bazë** të ngjashëm me prezantimin PPTX:
-  - Numri i procedurave
-  - Fondet e prokuruara (mln €)
-  - Kursimet (mln €)
-  - Mesatare e ofertave
-- **Krahasim historik** 2019–2025 (të dhënat nga prezantimi OBP)
-- **Grafikët sipas llojit** të procedurës (M/SH/P)
-- **Top 10** kursimet më të mëdha
-
----
-
-## 📁 Struktura e projektit
-
+In Command Prompt run:
 ```
-src/
-  data/
-    seedData.js          ← 207 rreshtat nga Excel-i juaj
-  components/
-    BudgetTable.jsx      ← Tabela kryesore me filtrime
-    EditableCell.jsx     ← Qelizë me klikim për redaktim
-    ImportExportBar.jsx  ← Butonat Import/Export
-    Navbar.jsx           ← Navigimi lart
-    SummaryCards.jsx     ← Kartat KPI
-  pages/
-    TablePage.jsx        ← Faqja e tabelës
-    DashboardPage.jsx    ← Faqja e grafikëve
-  hooks/
-    useBudget.js         ← Menaxhimi i gjendjes
-  utils/
-    calculations.js      ← Llogaritjet
-    excelIO.js           ← Import/Export Excel
-    storage.js           ← localStorage
+ipconfig
 ```
+Look for **IPv4 Address** under your network adapter.
+Example: `192.168.1.45`
+
+### Step 3 — Share with other users
+
+Tell all users on the LAN to open their browser and go to:
+```
+http://192.168.1.45:5173
+```
+(replace with your actual IP)
 
 ---
 
-## 💾 Ruajtja e të dhënave
-Të gjitha ndryshimet ruhen automatikisht në **localStorage** të shfletuesit. Klikohi **↺ Rivendos** për të kthyer të dhënat origjinale.
+## First-time login
+
+1. The **first person to register** automatically becomes **Admin**
+2. All other users register as **Viewer** (read-only)
+3. Admin goes to ⚙️ Admin page → promotes users to Editor
+
+---
+
+## User roles
+
+| Role    | Can see | Can edit | Can import/export | Can manage users |
+|---------|---------|----------|-------------------|-----------------|
+| Viewer  | ✅      | ❌       | Export only       | ❌              |
+| Editor  | ✅      | ✅       | ✅                | ❌              |
+| Admin   | ✅      | ✅       | ✅                | ✅              |
+
+---
+
+## Real-time sync
+
+The app checks for changes every **5 seconds**.
+If any user makes a change, all other users see it within 5 seconds automatically.
+
+---
+
+## Backup
+
+The entire database is in one file: `server/db.sqlite`
+Copy this file to backup all your data.
+
+---
+
+## Troubleshooting
+
+**"Serveri nuk është i disponueshëm"**
+→ Make sure `node server.js` is running in the `server/` folder
+
+**Other PCs can't connect**
+→ Check Windows Firewall — allow port 5173 and 3001
+→ Run: `netsh advfirewall firewall add rule name="OBP App" dir=in action=allow protocol=TCP localport=5173`
+→ Run: `netsh advfirewall firewall add rule name="OBP Server" dir=in action=allow protocol=TCP localport=3001`

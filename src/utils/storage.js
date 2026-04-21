@@ -4,7 +4,7 @@ const KEY = 'obp_rows_v7';
 const USER_KEY = 'obp_username';
 
 function migrate(r) {
-  const base = { dataHapjes: '', nePct: 0, eAnulluar: false, nrOperatoreve: 0, notes: '', ...r };
+  const base = { dataHapjes: '', nePct: 0, eAnulluar: false, nrOperatoreve: 0, ...r };
   if (base.ePerfunduar === undefined || base.ePerfunduar === null) base.ePerfunduar = true;
   if (!base.vitiShpalljes) base.vitiShpalljes = base.year || 2025;
   if (!base.vitiVleresimit) base.vitiVleresimit = base.year || 2025;
@@ -35,7 +35,7 @@ export function createBlankRow(year = 2026) {
     description: '', ref: '',
     fondiLimit: 0, vleraFituesit: 0, nePct: 0, kursimi: 0, kursimiPct: 0,
     lloji: 'M', nrOfertave: 1, nrOperatoreve: 1,
-    dataShpalljes: '', dataHapjes: '', notes: '',
+    dataShpalljes: '', dataHapjes: '',
     ePerfunduar: false, eAnulluar: false,
     lastEditedAt: null, editedBy: null,
   };

@@ -1,8 +1,7 @@
-// ImportExportBar — includes Undo button and PDF export
 import { useRef, useState } from 'react';
 import { importFromExcel, exportToExcel } from '../utils/excelIO';
 
-export default function ImportExportBar({ rows, onImport, onAddRow, onReset, onUndo, canUndo }) {
+export default function ImportExportBar({ rows, isAdmin, isEditor, onImport, onAddRow, onReset, onUndo, canUndo }) {
   const fileRef = useRef(null);
   const [status, setStatus] = useState(null);
 
@@ -18,11 +17,6 @@ export default function ImportExportBar({ rows, onImport, onAddRow, onReset, onU
     e.target.value = '';
   }
 
-  function handlePrint() {
-    // Open dashboard in print mode — browser handles "Save as PDF"
-    window.print();
-  }
-
   return (
     <div className="iebar-wrap">
       <div className="iebar">
@@ -30,31 +24,33 @@ export default function ImportExportBar({ rows, onImport, onAddRow, onReset, onU
           <input ref={fileRef} type="file" accept=".xlsx,.xls"
             onChange={handleFileChange} style={{ display:'none' }} />
 
-          <button className="btn btn-import" onClick={() => fileRef.current.click()}>
-            ⬆ Importo Excel
-          </button>
+          {/* Export — everyone */}
           <button className="btn btn-export"
             onClick={() => { exportToExcel(rows, 'OBP_Savings'); setStatus({ type:'ok', msg:'✓ Shkarkuar.' }); }}>
             ⬇ Shkarko Excel
           </button>
+
+          {/* Add row — editor + admin */}
           <button className="btn btn-add" onClick={onAddRow}>
             + Shto Rresht
           </button>
 
-          {/* Undo button — feature #4 */}
-          <button
-            className="btn btn-undo"
-            onClick={onUndo}
-            disabled={!canUndo}
-            title="Kthe ndryshimin e fundit (Ctrl+Z)"
-          >
+          {/* Undo — editor + admin */}
+          <button className="btn btn-undo" onClick={onUndo} disabled={!canUndo}
+            title="Kthe ndryshimin e fundit (Ctrl+Z)">
             ↩ Undo
           </button>
 
-          <button className="btn btn-reset"
-            onClick={() => { if (window.confirm('Rivendos?')) { onReset(); setStatus({ type:'ok', msg:'✓ Rivendosur.' }); } }}>
-            ↺ Rivendos
-          </button>
+          {/* Import + Reset — admin only */}
+          {isAdmin && (<>
+            <button className="btn btn-import" onClick={() => fileRef.current.click()}>
+              ⬆ Importo Excel
+            </button>
+            <button className="btn btn-reset"
+              onClick={() => { if (window.confirm('Rivendos të dhënat origjinale?')) { onReset(); setStatus({ type:'ok', msg:'✓ Rivendosur.' }); }}}>
+              ↺ Rivendos
+            </button>
+          </>)}
         </div>
 
         {status && (

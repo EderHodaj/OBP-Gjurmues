@@ -63,17 +63,7 @@ function toNum(val) { if (typeof val === 'number') return val; return parseFloat
 function toBool(val) { if (typeof val === 'boolean') return val; if (typeof val === 'number') return val===1; const s = String(val).toLowerCase().trim(); return s==='1'||s==='true'||s==='po'||s==='yes'; }
 
 export function exportToExcel(rows, filename = 'OBP_Savings') {
-  const data = rows.map(row => {
-    const obj = {};
-    for (const col of COLUMNS) {
-      let val = row[col.key];
-      if (col.key === 'ePerfunduar' || col.key === 'eAnulluar') val = val ? 1 : 0;
-      // Annulled procedures: kursimi and kursimiPct default to 0
-      if (row.eAnulluar && (col.key === 'kursimi' || col.key === 'kursimiPct')) val = 0;
-      obj[col.label] = val ?? '';
-    }
-    return obj;
-  });
+  const data = rows.map(row => { const obj = {}; for (const col of COLUMNS) { let val = row[col.key]; if (col.key==='ePerfunduar'||col.key==='eAnulluar') val = val?1:0; obj[col.label] = val ?? ''; } return obj; });
   const completed = rows.filter(r => r.ePerfunduar && !r.eAnulluar);
   const tf = rows.reduce((s,r) => s+toNum(r.fondiLimit),0);
   const tk = completed.reduce((s,r) => s+toNum(r.kursimi),0);
@@ -128,6 +118,8 @@ export function importFromExcel(file) {
           });
         });
         if (rows.length===0) errors.push('Nuk u njoh asnjë kolonë.');
+        // Sort descending by nr so highest number appears first in the table
+        rows.sort((a, b) => (Number(b.nr) || 0) - (Number(a.nr) || 0));
         resolve({ rows, errors });
       } catch (err) { reject(err); }
     };

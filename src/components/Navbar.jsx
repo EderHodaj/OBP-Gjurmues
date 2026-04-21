@@ -1,9 +1,15 @@
-// components/Navbar.jsx
+// Navbar — shows user info, role badge, logout, admin link
 import { Link, useLocation } from 'react-router-dom';
 
-export default function Navbar({ username, onUsernameChange }) {
-  const loc = useLocation();
+export default function Navbar({ user, onLogout, isAdmin }) {
+  const loc    = useLocation();
   const active = (path) => loc.pathname === path ? 'nav-link active' : 'nav-link';
+
+  const roleBadge = {
+    admin:  { label: 'Admin',   cls: 'badge-admin'  },
+    editor: { label: 'Editor',  cls: 'badge-editor' },
+    viewer: { label: 'Shikues', cls: 'badge-viewer' },
+  }[user?.role] || { label: user?.role, cls: '' };
 
   return (
     <nav className="navbar">
@@ -16,20 +22,19 @@ export default function Navbar({ username, onUsernameChange }) {
       </div>
 
       <div className="nav-links">
-        <Link to="/"          className={active('/')}>          📋 Tabela</Link>
-        <Link to="/dashboard" className={active('/dashboard')}> 📊 Paneli</Link>
+        <Link to="/"          className={active('/')}>📋 Tabela</Link>
+        <Link to="/dashboard" className={active('/dashboard')}>📊 Paneli</Link>
+        {isAdmin && (
+          <Link to="/admin" className={active('/admin')}>⚙️ Admin</Link>
+        )}
       </div>
 
       <div className="nav-user">
-        <span className="nav-user-label">Përdoruesi:</span>
-        <input
-          type="text"
-          className="nav-user-input"
-          placeholder="Emri juaj…"
-          value={username}
-          onChange={e => onUsernameChange(e.target.value)}
-          maxLength={40}
-        />
+        <span className="nav-user-name">👤 {user?.username}</span>
+        <span className={`role-badge ${roleBadge.cls}`}>{roleBadge.label}</span>
+        <button className="btn-logout" onClick={onLogout} title="Dilni">
+          Dil →
+        </button>
       </div>
     </nav>
   );

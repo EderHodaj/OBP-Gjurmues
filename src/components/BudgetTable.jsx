@@ -4,17 +4,16 @@ import { formatNum, formatTimestamp, totalsByYear, uniqueYears } from '../utils/
 
 const PAGE_SIZE = 50;
 
-// All editable column fields in order (used for Tab navigation)
+// All editable column fields in Tab order
 const EDITABLE_FIELDS = [
   'nr','description','ref',
   'fondiLimit','vleraFituesit',
   'lloji','nrOfertave','nrOperatoreve',
   'dataShpalljes','dataHapjes',
   'vitiShpalljes','vitiVleresimit',
-  'notes',
 ];
 
-export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDeleteRow, lastEditedCell }) {
+export default function BudgetTable({ rows, isEditor, isAdmin, onUpdateCell, onToggleFlag, onAddRow, onDeleteRow, lastEditedCell }) {
   const [search,       setSearch]       = useState('');
   const [filterYear,   setFilterYear]   = useState('all');
   const [filterLloji,  setFilterLloji]  = useState('all');
@@ -26,9 +25,7 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
   const tableScrollRef = useRef(null);
   const topMirrorRef   = useRef(null);
   const topInnerRef    = useRef(null);
-
-  // cellRefs[rowIndex][colIndex] → ref to that EditableCell's focus fn
-  const cellRefs = useRef({});
+  const cellRefs       = useRef({});
 
   useEffect(() => {
     function syncWidth() {
@@ -49,18 +46,14 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
 
   const filtered = useMemo(() => {
     let r = rows;
-    if (filterYear !== 'all') r = r.filter(x => String(x.vitiShpalljes||x.year) === filterYear || String(x.vitiVleresimit||x.year) === filterYear);
-    if (filterLloji !== 'all') r = r.filter(x => x.lloji === filterLloji);
+    if (filterYear   !== 'all') r = r.filter(x => String(x.vitiShpalljes||x.year) === filterYear || String(x.vitiVleresimit||x.year) === filterYear);
+    if (filterLloji  !== 'all') r = r.filter(x => x.lloji === filterLloji);
     if (filterStatus === 'completed') r = r.filter(x =>  x.ePerfunduar && !x.eAnulluar);
     if (filterStatus === 'annulled')  r = r.filter(x =>  x.eAnulluar);
     if (filterStatus === 'active')    r = r.filter(x => !x.ePerfunduar && !x.eAnulluar);
     if (search) {
       const q = search.toLowerCase();
-      r = r.filter(x =>
-        (x.description||'').toLowerCase().includes(q) ||
-        (x.ref||'').toLowerCase().includes(q) ||
-        (x.notes||'').toLowerCase().includes(q)
-      );
+      r = r.filter(x => (x.description||'').toLowerCase().includes(q) || (x.ref||'').toLowerCase().includes(q));
     }
     if (sortField) {
       r = [...r].sort((a, b) => {
@@ -75,9 +68,8 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows   = filtered.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
 
-  // ── Keyboard navigation ───────────────────────────────────
+  // ── Keyboard navigation ──────────────────────────────────────
   const navigate = useCallback((rowIdx, colIdx) => {
-    // Clamp to valid range
     const r = Math.max(0, Math.min(rowIdx, pageRows.length - 1));
     const c = Math.max(0, Math.min(colIdx, EDITABLE_FIELDS.length - 1));
     const ref = cellRefs.current[`${r}-${c}`];
@@ -95,6 +87,11 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
     else { setSortField(f); setSortDir('asc'); }
   }
 
+  // Editor + Admin can edit/add/delete; viewer is read-only
+  const canEdit    = isEditor || isAdmin;
+  const handleSave = canEdit ? onUpdateCell : () => {};
+  const handleFlag = canEdit ? onToggleFlag : () => {};
+
   function Th({ field, children, style }) {
     const active = sortField === field;
     return (
@@ -109,11 +106,11 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
   const fondiByYear   = totalsByYear(completedRows, 'fondiLimit', 'vitiVleresimit');
 
   return (
-    <div className="table-wrapper">
+    <div className={`table-wrapper ${!canEdit ? 'viewer-mode' : ''}`}>
 
-      {/* ── Filters ── */}
+      {/* Filters */}
       <div className="table-filters">
-        <input className="filter-input" placeholder="🔍  Kërko sipas objektit, ref ose shënimeve…"
+        <input className="filter-input" placeholder="🔍  Kërko sipas objektit ose ref…"
           value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
         <select className="filter-select" value={filterYear}
           onChange={e => { setFilterYear(e.target.value); setPage(1); }}>
@@ -135,12 +132,12 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
         <span className="filter-count">{filtered.length} rreshta</span>
       </div>
 
-      {/* ── Top scrollbar mirror ── */}
+      {/* Top mirror scrollbar */}
       <div className="scroll-top-mirror" ref={topMirrorRef} onScroll={onMirrorScroll}>
         <div className="scroll-top-inner" ref={topInnerRef} />
       </div>
 
-      {/* ── Table ── */}
+      {/* Table */}
       <div className="table-scroll" ref={tableScrollRef} onScroll={onTableScroll}>
         <table className="btable">
           <thead>
@@ -162,8 +159,6 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
               <Th field="vitiVleresimit" style={{ minWidth:90 }}>Viti Vlerësimit</Th>
               <th className="col-flag" title="E Përfunduar">✓</th>
               <th className="col-flag" title="E Anulluar">✗</th>
-              {/* Notes column — feature #2 */}
-              <th style={{ minWidth:180 }}>📝 Shënime</th>
               <th className="col-meta">Redaktuar nga</th>
               <th className="col-meta">Redaktuar më</th>
               <th className="col-del">⊗</th>
@@ -172,16 +167,15 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
 
           <tbody>
             {pageRows.length === 0 && (
-              <tr><td colSpan={21} className="empty-row">Nuk ka rreshta.</td></tr>
+              <tr><td colSpan={20} className="empty-row">Nuk ka rreshta.</td></tr>
             )}
-
             {pageRows.map((row, rowIdx) => {
-              const hi  = lastEditedCell?.rowId === row.id;
-              const neg = Number(row.kursimi) < 0;
+              const hi     = lastEditedCell?.rowId === row.id;
+              const neg    = Number(row.kursimi) < 0;
               const rowCls = row.eAnulluar ? 'row-annulled' : row.ePerfunduar ? 'row-completed' : hi ? 'row-hi' : '';
-              const nCols = EDITABLE_FIELDS.length;
+              const nCols  = EDITABLE_FIELDS.length;
 
-              // Helper: render an EditableCell with nav wiring
+              // Helper: renders an EditableCell with full nav wiring
               function EC({ field, display, value: v }) {
                 const colIdx = EDITABLE_FIELDS.indexOf(field);
                 return (
@@ -189,7 +183,7 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
                     value={v !== undefined ? v : row[field]}
                     field={field}
                     rowId={row.id}
-                    onSave={onUpdateCell}
+                    onSave={handleSave}
                     isHighlighted={hi && lastEditedCell?.field === field}
                     display={display}
                     rowIndex={rowIdx}
@@ -218,7 +212,7 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
                       </span>
                       <div className="pct-bar-track">
                         <div className="pct-bar-fill" style={{
-                          width: `${Math.min(100,Math.abs(row.nePct||0))}%`,
+                          width: `${Math.min(100, Math.abs(row.nePct||0))}%`,
                           background: Number(row.nePct) > 100 ? 'var(--danger)' : 'var(--accent)',
                         }} />
                       </div>
@@ -226,17 +220,13 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
                   </td>
 
                   {/* Kursimi — read-only */}
-                  <td className={`kursimi-cell ${neg?'negative':'positive'}`}>
-                    {formatNum(row.kursimi)}
-                  </td>
+                  <td className={`kursimi-cell ${neg?'negative':'positive'}`}>{formatNum(row.kursimi)}</td>
                   <td className="ne-pct-cell">
                     <div className="ne-pct-wrap">
-                      <span className={neg?'negative':'positive'}>
-                        {Number(row.kursimiPct||0).toFixed(2)}%
-                      </span>
+                      <span className={neg?'negative':'positive'}>{Number(row.kursimiPct||0).toFixed(2)}%</span>
                       <div className="pct-bar-track">
                         <div className="pct-bar-fill" style={{
-                          width: `${Math.min(100,Math.abs(row.kursimiPct||0))}%`,
+                          width: `${Math.min(100, Math.abs(row.kursimiPct||0))}%`,
                           background: neg ? 'var(--danger)' : 'var(--accent2)',
                         }} />
                       </div>
@@ -255,23 +245,24 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
                   <td className="col-flag">
                     <input type="checkbox" className="flag-check check-green"
                       checked={!!row.ePerfunduar}
-                      onChange={() => onToggleFlag(row.id, 'ePerfunduar')}
+                      onChange={() => handleFlag(row.id, 'ePerfunduar')}
+                      style={{ cursor: canEdit ? 'pointer' : 'default' }}
                       title="Shëno si të përfunduar" />
                   </td>
                   <td className="col-flag">
                     <input type="checkbox" className="flag-check check-red"
                       checked={!!row.eAnulluar}
-                      onChange={() => onToggleFlag(row.id, 'eAnulluar')}
+                      onChange={() => handleFlag(row.id, 'eAnulluar')}
+                      style={{ cursor: canEdit ? 'pointer' : 'default' }}
                       title="Shëno si të anulluar" />
                   </td>
-
-                  {/* Notes — feature #2 */}
-                  <EC field="notes" />
 
                   <td className="col-meta meta-txt">{row.editedBy||'—'}</td>
                   <td className="col-meta meta-txt">{formatTimestamp(row.lastEditedAt)}</td>
                   <td className="col-del">
-                    <button className="btn-del" onClick={() => onDeleteRow(row.id)} title="Fshi rreshtin">×</button>
+                    {isEditor && (
+                      <button className="btn-del" onClick={() => onDeleteRow(row.id)} title="Fshi rreshtin">×</button>
+                    )}
                   </td>
                 </tr>
               );
@@ -288,7 +279,7 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
                   <td colSpan={6} className="total-lbl">✓ Kursimi {y} (vetëm të përfunduarat)</td>
                   <td className="total-val">{formatNum(kurs)}</td>
                   <td className="total-val">{fond > 0 ? (kurs/fond*100).toFixed(2)+'%' : '—'}</td>
-                  <td colSpan={13} />
+                  <td colSpan={12} />
                 </tr>
               </tfoot>
             );
@@ -296,7 +287,7 @@ export default function BudgetTable({ rows, onUpdateCell, onToggleFlag, onDelete
         </table>
       </div>
 
-      {/* ── Pagination ── */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="pagination">
           <button className="pg-btn" disabled={page===1}          onClick={()=>setPage(1)}>⟪ E para</button>
