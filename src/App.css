@@ -170,7 +170,7 @@
 /* ── RESPONSIVE ── */
 @media (max-width:768px) {
   .navbar { gap:10px; }
-  .nav-subtitle,.col-meta { display:none; }
+  .nav-subtitle { display:none; }
   .nav-user-input { width:120px; }
   .page { padding:16px 12px 48px; }
   .filter-input { width:100%; }
@@ -376,3 +376,15 @@
 .viewer-mode .flag-check { pointer-events: none; opacity: .6; }
 .viewer-mode .btn-del { display: none; }
 .viewer-mode .col-del { display: none; }
+
+/* ── PRINT / PDF ── */
+@media print {
+  .navbar, .iebar-wrap, .table-filters, .table-wrapper,
+  .pagination, .no-print, .btn-pdf, .annulled-stat { 
+    display: none !important; 
+  }
+  body { background: #fff !important; color: #000 !important; }
+  .page-title { color: #000 !important; }
+  .page-sub   { color: #444 !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}

@@ -173,9 +173,9 @@ export default function DashboardPage({ rows }) {
         {/* PDF export button — feature #1 */}
         <button
           className="btn btn-pdf no-print"
-          onClick={() => window.print()}
+          onClick={() => window.open('/print', '_blank')}
           style={{ marginTop: 12 }}
-          title="Shtyp ose Ruaj si PDF"
+          title="Hap faqen e printimit"
         >
           🖨️ Shtyp / Ruaj si PDF
         </button>

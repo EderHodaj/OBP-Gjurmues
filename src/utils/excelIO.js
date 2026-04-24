@@ -112,7 +112,7 @@ export function importFromExcel(file) {
             id: crypto.randomUUID(), nr: Number(norm.nr)||null, year, vitiShpalljes, vitiVleresimit,
             description: String(norm.description||''), ref: String(norm.ref||''),
             fondiLimit: fondi, vleraFituesit: vlera, nePct, kursimi, kursimiPct,
-            lloji: String(norm.lloji||''), nrOfertave: toNum(norm.nrOfertave), nrOperatoreve: toNum(norm.nrOperatoreve),
+            lloji: String(norm.lloji||'').trim().toUpperCase(), nrOfertave: toNum(norm.nrOfertave), nrOperatoreve: toNum(norm.nrOperatoreve),
             dataShpalljes, dataHapjes, ePerfunduar: toBool(norm.ePerfunduar), eAnulluar: toBool(norm.eAnulluar),
             lastEditedAt: null, editedBy: null,
           });

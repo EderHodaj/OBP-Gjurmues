@@ -27,6 +27,14 @@ function sortRows(rows) {
   });
 }
 
+function getUsernameFromToken() {
+  try {
+    const t = localStorage.getItem('obp_token');
+    if (!t) return '';
+    return JSON.parse(atob(t.split('.')[1])).username || '';
+  } catch { return ''; }
+}
+
 export function useBudget(token) {
   const [rows,          setRows]    = useState([]);
   const [loading,       setLoading] = useState(true);
@@ -151,10 +159,11 @@ export function useBudget(token) {
     if (field === 'year')           v = parseInt(value) || 2026;
     if (field === 'vitiShpalljes')  v = parseInt(value) || 2026;
     if (field === 'vitiVleresimit') v = parseInt(value) || 2026;
+    if (field === 'lloji')          v = String(value).trim().toUpperCase();
 
     setRows(prev => prev.map(row => {
       if (row.id !== rowId) return row;
-      let u = { ...row, [field]: v, lastEditedAt: new Date().toISOString() };
+      let u = { ...row, [field]: v, lastEditedAt: new Date().toISOString(), editedBy: getUsernameFromToken() };
       if (field === 'vitiShpalljes') u.year = v;
       if (['fondiLimit','vleraFituesit'].includes(field)) u = recalcRow(u);
       return u;
@@ -187,6 +196,7 @@ export function useBudget(token) {
         ...(flag === 'eAnulluar'   && on ? { ePerfunduar: false } : {}),
         ...(flag === 'ePerfunduar' && on ? { eAnulluar:   false } : {}),
         lastEditedAt: new Date().toISOString(),
+        editedBy: getUsernameFromToken(),
       };
     }));
     setLEC({ rowId, field: flag });

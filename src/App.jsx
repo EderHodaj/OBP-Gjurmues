@@ -5,6 +5,7 @@ import TablePage     from './pages/TablePage';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage     from './pages/LoginPage';
 import AdminPage     from './pages/AdminPage';
+import PrintPage     from './pages/PrintPage';
 import { useBudget } from './hooks/useBudget';
 import { useAuth   } from './hooks/useAuth';
 import './App.css';
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="/admin"     element={
           isAdmin ? <AdminPage token={token} currentUser={user} /> : <Navigate to="/" />
         } />
+        <Route path="/print"    element={<PrintPage rows={rows} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

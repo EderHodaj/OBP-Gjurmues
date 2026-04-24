@@ -236,7 +236,8 @@ app.put('/api/rows/:id', requireEditor, async (req, res) => {
   };
   const col = fieldMap[field];
   if (!col) return res.status(400).json({ error: `Unknown field: ${field}` });
-  const dbVal = (field === 'ePerfunduar' || field === 'eAnulluar') ? (value ? 1 : 0) : value;
+  let dbVal = (field === 'ePerfunduar' || field === 'eAnulluar') ? (value ? 1 : 0) : value;
+  if (field === 'lloji') dbVal = String(value || '').trim().toUpperCase();
   const now   = new Date().toISOString();
   try {
     await dbRun(`UPDATE procedures SET ${col}=?, last_edited_at=?, edited_by=?, updated_at=? WHERE id=?`,
