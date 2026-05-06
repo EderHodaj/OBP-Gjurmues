@@ -404,6 +404,18 @@ app.put('/api/users/:id/role', requireAdmin, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Reset user password (admin)
+app.put('/api/users/:id/password', requireAdmin, async (req, res) => {
+  const { password } = req.body;
+  if (!password || password.length < 4)
+    return res.status(400).json({ error: 'Fjalëkalimi duhet të ketë të paktën 4 karaktere' });
+  try {
+    const hash = bcrypt.hashSync(password, 10);
+    await dbRun('UPDATE users SET password=? WHERE id=?', [hash, req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Delete user (admin)
 app.delete('/api/users/:id', requireAdmin, async (req, res) => {
   if (parseInt(req.params.id) === req.user.id)

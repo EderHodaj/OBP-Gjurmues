@@ -14,12 +14,13 @@ const BLUE   = '#3b82f6';
 const HIST   = '#374151';
 
 const HISTORY = [
-  { label:'2019',        procedures:158, annulled:51,  completed:107, fondiMlnEur:85,  fondiVlerMlnEur:85,  kursimiMlnEur:3.3,  ofertave:3.7, operatoreve:3.7, procPerMonth:13.2, fondiPerMonth:7.08, annulledPct:32.28, suksesPct:67.72, kursimiVlerPct:3.88,  avgKursimiPct:11 },
-  { label:'2020',        procedures:267, annulled:86,  completed:181, fondiMlnEur:47,  fondiVlerMlnEur:47,  kursimiMlnEur:5.1,  ofertave:3.8, operatoreve:3.8, procPerMonth:22.3, fondiPerMonth:3.92, annulledPct:32.21, suksesPct:67.79, kursimiVlerPct:10.85, avgKursimiPct:20 },
-  { label:'2021',        procedures:187, annulled:64,  completed:123, fondiMlnEur:37,  fondiVlerMlnEur:37,  kursimiMlnEur:4.6,  ofertave:3.6, operatoreve:3.6, procPerMonth:15.6, fondiPerMonth:3.08, annulledPct:34.22, suksesPct:65.78, kursimiVlerPct:12.43, avgKursimiPct:22 },
-  { label:'2022',        procedures:204, annulled:67,  completed:137, fondiMlnEur:58,  fondiVlerMlnEur:58,  kursimiMlnEur:4.6,  ofertave:3.3, operatoreve:3.3, procPerMonth:17.0, fondiPerMonth:4.83, annulledPct:32.84, suksesPct:67.16, kursimiVlerPct:7.93,  avgKursimiPct:17 },
-  { label:'2023',        procedures:171, annulled:74,  completed:97,  fondiMlnEur:39,  fondiVlerMlnEur:39,  kursimiMlnEur:2.7,  ofertave:2.7, operatoreve:2.7, procPerMonth:14.3, fondiPerMonth:3.25, annulledPct:43.27, suksesPct:56.73, kursimiVlerPct:6.92,  avgKursimiPct:16 },
-  { label:'OBP 8M 2024', procedures:314, annulled:55,  completed:259, fondiMlnEur:168, fondiVlerMlnEur:168, kursimiMlnEur:18.4, ofertave:4.7, operatoreve:4.7, procPerMonth:34.9, fondiPerMonth:21.0, annulledPct:16.88, suksesPct:83.12, kursimiVlerPct:10.95, avgKursimiPct:17 },
+  { label:'2019',        procedures:158, annulled:51,  completed:107, fondiMlnEur:85,  fondiVlerMlnEur:85,  kursimiMlnEur:3.3,  ofertave:3.7, operatoreve:3.7, procPerMonth:13.2, fondiPerMonth:7.08, annulledPct:32.28, suksesPct:67.72, kursimiVlerPct:4,     avgKursimiPct:11 },
+  { label:'2020',        procedures:267, annulled:86,  completed:181, fondiMlnEur:47,  fondiVlerMlnEur:47,  kursimiMlnEur:5.1,  ofertave:3.8, operatoreve:3.8, procPerMonth:22.3, fondiPerMonth:3.92, annulledPct:32.21, suksesPct:67.79, kursimiVlerPct:12,    avgKursimiPct:20 },
+  { label:'2021',        procedures:187, annulled:64,  completed:123, fondiMlnEur:37,  fondiVlerMlnEur:37,  kursimiMlnEur:4.6,  ofertave:3.6, operatoreve:3.6, procPerMonth:15.6, fondiPerMonth:3.08, annulledPct:34.22, suksesPct:65.78, kursimiVlerPct:12.5,  avgKursimiPct:22 },
+  { label:'2022',        procedures:204, annulled:67,  completed:137, fondiMlnEur:58,  fondiVlerMlnEur:58,  kursimiMlnEur:4.6,  ofertave:3.3, operatoreve:3.3, procPerMonth:17.0, fondiPerMonth:4.83, annulledPct:32.84, suksesPct:67.16, kursimiVlerPct:8,     avgKursimiPct:17 },
+  { label:'2023',        procedures:171, annulled:74,  completed:97,  fondiMlnEur:39,  fondiVlerMlnEur:39,  kursimiMlnEur:2.7,  ofertave:2.7, operatoreve:2.7, procPerMonth:14.3, fondiPerMonth:3.25, annulledPct:43.27, suksesPct:56.73, kursimiVlerPct:5,     avgKursimiPct:16 },
+  { label:'OBP 8M 2024', procedures:314, annulled:55,  completed:259, fondiMlnEur:168, fondiVlerMlnEur:158, kursimiMlnEur:18.4, ofertave:4.7, operatoreve:4.7, procPerMonth:34.9, fondiPerMonth:21.0, annulledPct:16.88, suksesPct:83.12, kursimiVlerPct:11.64, avgKursimiPct:17 },
+  { label:'2025',        procedures:578, annulled:106, completed:290, fondiMlnEur:194, fondiVlerMlnEur:97.2, kursimiMlnEur:12.8, ofertave:4.3, operatoreve:5.1, procPerMonth:48.2, fondiPerMonth:16.2, annulledPct:18,    suksesPct:82,   kursimiVlerPct:13.2,  avgKursimiPct:16, sukses:472 },
 ];
 const HISTORY_YEARS = new Set(HISTORY.map(h => h.label));
 
@@ -173,7 +174,7 @@ const CSS = `
   .kpi-year-det { color: #555; font-size: 7pt; margin-left: 3px; }
 `;
 
-function KpiPage({ rows, completed, annulled, years, fondiProkByYear, totKurs, totFondiVler, completedByYear, annulledByYear, annulledFondiByYear, fondiVlerByYear }) {
+function KpiPage({ rows, completed, annulled, years, fondiProkByYear, totKurs, totFondiVler, completedByYear, annulledByYear, annulledFondiByYear, fondiVlerByYear, historyData, liveYears }) {
   const grandFondiAll  = grandTotal(rows,      'fondiLimit');
   const grandFondiComp = grandTotal(completed, 'fondiLimit');
   const grandKursimi   = grandTotal(completed, 'kursimi');
@@ -181,27 +182,41 @@ function KpiPage({ rows, completed, annulled, years, fondiProkByYear, totKurs, t
   const annulledFondi  = grandTotal(annulled, 'fondiLimit');
   const annulledPct    = rows.length > 0 ? (annulled.length / rows.length * 100).toFixed(1) : '0.0';
 
-  function YearBoxes({ yData, suffix }) {
+  // Build per-year data combining HISTORY (fixed) + live data
+  const histMap = Object.fromEntries((historyData||[]).map(h => [h.label, h]));
+
+  function getCount(y) {
+    if (histMap[y]) return histMap[y].procedures;
+    // Live year — count all rows by vitiShpalljes
+    const yr = typeof y === 'string' ? parseInt(y) : y;
+    return rows.filter(r => (r.vitiShpalljes || r.year) === yr).length;
+  }
+  function getCompleted(y) { return histMap[y] ? histMap[y].completed : (completedByYear[y]||0); }
+  function getAnnulled(y)  { return histMap[y] ? histMap[y].annulled  : (annulledByYear[y]||0); }
+  function getFondiProk(y) { return histMap[y] ? histMap[y].fondiMlnEur*100_000_000 : (fondiProkByYear[y]||0); }
+  function getFondiVler(y) { return histMap[y] ? histMap[y].fondiVlerMlnEur*100_000_000 : (fondiVlerByYear[y]||0); }
+  function getKursimi(y)   { return histMap[y] ? histMap[y].kursimiMlnEur*100_000_000 : (totKurs[y]||0); }
+
+  function YearBoxes({ getFn }) {
     return (
       <div className="kpi-years">
         {years.map(y => (
           <div className="kpi-year-box" key={y}>
             <span className="kpi-year-lbl">{y}</span>
-            <span className="kpi-year-val">{yData[y]}{suffix||''}</span>
-            {null}
+            <span className="kpi-year-val">{getFn(y)}</span>
           </div>
         ))}
       </div>
     );
   }
 
-  function YearBoxesFondi({ yData }) {
+  function YearBoxesFondi({ getFn }) {
     return (
       <div className="kpi-years">
         {years.map(y => (
           <div className="kpi-year-box" key={y}>
             <span className="kpi-year-lbl">{y}</span>
-            <span className="kpi-year-val">{formatMlnEur(yData[y]||0)} mln €</span>
+            <span className="kpi-year-val">{formatMlnEur(getFn(y))} mln €</span>
           </div>
         ))}
       </div>
@@ -214,8 +229,8 @@ function KpiPage({ rows, completed, annulled, years, fondiProkByYear, totKurs, t
         {years.map(y => (
           <div className="kpi-year-box" key={y}>
             <span className="kpi-year-lbl">{y}</span>
-            <span className="kpi-year-val">{annulledByYear[y]||0}</span>
-            <span className="kpi-year-det">{formatMlnEur(annulledFondiByYear[y]||0)} mln €</span>
+            <span className="kpi-year-val">{getAnnulled(y)}</span>
+            <span className="kpi-year-det">{formatMlnEur(histMap[y] ? 0 : (annulledFondiByYear[y]||0))} mln €</span>
           </div>
         ))}
       </div>
@@ -234,14 +249,14 @@ function KpiPage({ rows, completed, annulled, years, fondiProkByYear, totKurs, t
         <div className="kpi-card kpi-card-blue">
           <div className="kpi-card-label">Procedura Gjithsej (viti shpalljes)</div>
           <div className="kpi-card-value">{rows.length}</div>
-          <YearBoxes yData={Object.fromEntries(years.map(y=>[y,completedByYear[y]||0]))} />
+          <YearBoxes getFn={getCount} />
         </div>
 
         <div className="kpi-card kpi-card-green">
           <div className="kpi-card-label">✓ Të Përfunduara (viti vlerësimit)</div>
           <div className="kpi-card-value">{completed.length}</div>
           <div className="kpi-card-sub">{rows.length>0?(completed.length/rows.length*100).toFixed(1):0}% e totalit</div>
-          <YearBoxes yData={completedByYear} />
+          <YearBoxes getFn={getCompleted} />
         </div>
 
         <div className="kpi-card kpi-card-red">
@@ -255,21 +270,21 @@ function KpiPage({ rows, completed, annulled, years, fondiProkByYear, totKurs, t
           <div className="kpi-card-label">Fondi i Prokuruar — gjithsej (viti shpalljes)</div>
           <div className="kpi-card-value">{formatMlnEur(grandFondiAll)} mln €</div>
           <div className="kpi-card-sub">{formatNum(grandFondiAll)} Lekë</div>
-          <YearBoxesFondi yData={fondiProkByYear} />
+          <YearBoxesFondi getFn={getFondiProk} />
         </div>
 
         <div className="kpi-card kpi-card-green">
           <div className="kpi-card-label">Fondi i Vlerësuar ✓ (viti vlerësimit)</div>
           <div className="kpi-card-value">{formatMlnEur(grandFondiComp)} mln €</div>
           <div className="kpi-card-sub">{formatNum(grandFondiComp)} Lekë</div>
-          <YearBoxesFondi yData={fondiVlerByYear} />
+          <YearBoxesFondi getFn={getFondiVler} />
         </div>
 
         <div className="kpi-card kpi-card-green">
           <div className="kpi-card-label">Kursimi Total ✓ (viti vlerësimit)</div>
           <div className="kpi-card-value">{formatMlnEur(grandKursimi)} mln €</div>
           <div className="kpi-card-sub">Mesatare: {avgPct.toFixed(2)}%</div>
-          <YearBoxesFondi yData={kursimiByYear} />
+          <YearBoxesFondi getFn={getKursimi} />
         </div>
 
       </div>
@@ -302,6 +317,7 @@ function BarPage({ title, data, color, fmt, label, domain, isLast }) {
             <Bar dataKey="value" radius={[4,4,0,0]}>
               {data.map((e,i) => <Cell key={i} fill={e.isObp ? color : HIST} />)}
               <LabelList dataKey="value" position="top"
+                formatter={v => fmt(v)}
                 style={{ fontSize:11, fill:'#111', fontWeight:700 }} />
             </Bar>
           </BarChart>
@@ -322,8 +338,12 @@ export default function PrintPage({ rows }) {
   const completed = rows.filter(r =>  r.ePerfunduar && !r.eAnulluar);
   const annulled  = rows.filter(r =>  r.eAnulluar);
   const active    = rows.filter(r => !r.ePerfunduar && !r.eAnulluar);
-  const years     = uniqueYears(rows)
-    .filter(y => !HISTORY_YEARS.has(String(y)) && String(y) !== '2024');
+  // liveYears: only years not in HISTORY (for bar charts)
+  const liveYears  = uniqueYears(rows)
+    .filter(y => !HISTORY_YEARS.has(String(y)) && String(y) !== '2024' && String(y) !== '2025');
+  // kpiYears: only 2024, 2025 (HISTORY) + live years (2026+)
+  const kpiYears   = ['OBP 8M 2024', '2025', ...liveYears];
+  const years = liveYears; // keep 'years' for chart compat
 
   const fondiProkByYear = {};
   years.forEach(y => {
@@ -343,7 +363,7 @@ export default function PrintPage({ rows }) {
     const avgOe  = yComp.length>0 ? yComp.reduce((s,r)=>s+Number(r.nrOperatoreve||0),0)/yComp.length : 0;
     const sukses = yShp.length - yAnn.length;
     const mSet   = new Set();
-    yShp.forEach(r => { if(r.dataShpalljes){const p=r.dataShpalljes.split('/');if(p.length===3)mSet.add(Number(p[0]));} });
+    yShp.forEach(r => { if(r.dataShpalljes){const p=r.dataShpalljes.split('/');if(p.length===3)mSet.add(Number(p[1]));} }); // DD/MM/YYYY → month is index 1
     const nM = mSet.size>0 ? Math.max(...mSet) : 12;
     const avgKPct = yComp.length>0 ? yComp.reduce((s,r)=>s+(Number(r.kursimiPct)||0),0)/yComp.length : 0;
     return {
@@ -408,7 +428,7 @@ export default function PrintPage({ rows }) {
         rows={rows}
         completed={completed}
         annulled={annulled}
-        years={years}
+        years={kpiYears}
         fondiProkByYear={fondiProkByYear}
         totKurs={totKurs}
         totFondiVler={totFondiVler}
@@ -416,6 +436,8 @@ export default function PrintPage({ rows }) {
         annulledByYear={annulledByYear}
         annulledFondiByYear={annulledFondiByYear}
         fondiVlerByYear={fondiVlerByYear}
+        historyData={HISTORY}
+        liveYears={liveYears}
       />
 
       {charts.map((c,i) => (

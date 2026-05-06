@@ -47,18 +47,46 @@ const ALIASES = {
 };
 
 function toDateString(val) {
+  // Returns DD/MM/YYYY format
   if (!val && val !== 0) return '';
   try {
-    if (typeof val === 'number') { const j = XLSX.SSF.parse_date_code(val); if (j) return `${String(j.m).padStart(2,'0')}/${String(j.d).padStart(2,'0')}/${j.y}`; }
-    if (val instanceof Date) { return `${String(val.getMonth()+1).padStart(2,'0')}/${String(val.getDate()).padStart(2,'0')}/${val.getFullYear()}`; }
-    const str = String(val).trim(); if (!str || str === 'NaN') return '';
-    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) return str;
-    const m = str.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return `${m[2]}/${m[3]}/${m[1]}`;
-    const d = new Date(str); if (!isNaN(d.getTime())) return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+    // Excel serial number — most reliable, no timezone issue
+    if (typeof val === 'number') {
+      const j = XLSX.SSF.parse_date_code(val);
+      if (j) return `${String(j.d).padStart(2,'0')}/${String(j.m).padStart(2,'0')}/${j.y}`;
+    }
+    // Date object — use UTC to avoid timezone day shift
+    if (val instanceof Date) {
+      const d = String(val.getUTCDate()).padStart(2,'0');
+      const m = String(val.getUTCMonth()+1).padStart(2,'0');
+      const y = val.getUTCFullYear();
+      return `${d}/${m}/${y}`;
+    }
+    const str = String(val).trim();
+    if (!str || str === 'NaN') return '';
+    // Already DD/MM/YYYY
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+      const p = str.split('/');
+      return `${p[0].padStart(2,'0')}/${p[1].padStart(2,'0')}/${p[2]}`;
+    }
+    // ISO format YYYY-MM-DD — parse as UTC to avoid day shift
+    const mISO = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (mISO) return `${mISO[3]}/${mISO[2]}/${mISO[1]}`;
+    // Last resort — parse as UTC
+    const d = new Date(str + 'T00:00:00Z');
+    if (!isNaN(d.getTime())) {
+      return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
+    }
     return str;
   } catch { return String(val || ''); }
 }
-function toYear(val) { if (!val) return new Date().getFullYear(); const s = toDateString(val); const p = s.split('/'); return p.length===3 ? (parseInt(p[2])||new Date().getFullYear()) : new Date().getFullYear(); }
+function toYear(val) {
+  if (!val) return new Date().getFullYear();
+  const s = toDateString(val);
+  const p = s.split('/');
+  // DD/MM/YYYY — year is p[2]
+  return p.length===3 ? (parseInt(p[2])||new Date().getFullYear()) : new Date().getFullYear();
+}
 function toNum(val) { if (typeof val === 'number') return val; return parseFloat(String(val||0).replace(/[^0-9.\-]/g,''))||0; }
 function toBool(val) { if (typeof val === 'boolean') return val; if (typeof val === 'number') return val===1; const s = String(val).toLowerCase().trim(); return s==='1'||s==='true'||s==='po'||s==='yes'; }
 
@@ -81,44 +109,84 @@ export function importFromExcel(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array', cellDates:true, dateNF:'mm/dd/yyyy' });
+        // raw:true gives us Excel serial numbers for dates — no timezone issues
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array', raw:true });
         const sheetName = wb.SheetNames.find(n => n.toUpperCase().includes('SAVING')||n.toUpperCase().includes('KURSIM')) || wb.SheetNames[0];
         const ws = wb.Sheets[sheetName];
-        const raw = XLSX.utils.sheet_to_json(ws, { defval:'', raw:false });
-        const rawNum = XLSX.utils.sheet_to_json(ws, { defval:'', raw:true });
-        if (raw.length===0) return resolve({ rows:[], errors:['Fleta është bosh.'] });
+        const rawRows = XLSX.utils.sheet_to_json(ws, { defval:'', raw:true });
+        if (rawRows.length === 0) return resolve({ rows:[], errors:['Fleta është bosh.'] });
+
+        // Convert Excel serial number to DD/MM/YYYY — no Date object, no timezone
+        function serialToDate(val) {
+          if (!val && val !== 0) return '';
+          if (typeof val === 'number' && val > 1000) {
+            const j = XLSX.SSF.parse_date_code(val);
+            if (j) return `${String(j.d).padStart(2,'0')}/${String(j.m).padStart(2,'0')}/${j.y}`;
+          }
+          // String fallback (already formatted)
+          const s = String(val).trim();
+          if (!s || s === 'NaN') return '';
+          // ISO YYYY-MM-DD
+          const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+          // DD/MM/YYYY or MM/DD/YYYY — keep as-is if already formatted
+          if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+            const p = s.split('/');
+            return `${p[0].padStart(2,'0')}/${p[1].padStart(2,'0')}/${p[2]}`;
+          }
+          return s;
+        }
+
+        function yearFromDDMMYYYY(dateStr) {
+          if (!dateStr) return null;
+          const p = dateStr.split('/');
+          return p.length === 3 ? (parseInt(p[2]) || null) : null;
+        }
+
         const rows = [], errors = [];
-        raw.forEach((rawRow, rowIdx) => {
+        rawRows.forEach((rawRow) => {
           const norm = {};
           Object.entries(rawRow).forEach(([k, v]) => {
             const cleanKey = k.toLowerCase().trim().replace(/\s+/g,' ').replace(/ë/g,'e').replace(/ç/g,'c');
             const alias = ALIASES[cleanKey] || ALIASES[k.toLowerCase().trim()];
-            if (alias) { norm[alias] = v; if ((alias==='dataShpalljes'||alias==='dataHapjes') && rawNum[rowIdx]) norm[alias+'_raw'] = rawNum[rowIdx][k]; }
+            if (alias) norm[alias] = v;
           });
+
           if (!norm.description && !norm.fondiLimit) return;
-          if (String(norm.description).toUpperCase()==='TOTAL') return;
-          if (String(norm.nr).toUpperCase()==='TOTAL') return;
-          const fondi = toNum(norm.fondiLimit), vlera = toNum(norm.vleraFituesit);
-          const kursimi = fondi-vlera;
-          const nePct = fondi>0?parseFloat((vlera/fondi*100).toFixed(2)):0;
-          const kursimiPct = fondi>0?parseFloat((kursimi/fondi*100).toFixed(2)):0;
-          const dsRaw = norm.dataShpalljes_raw ?? norm.dataShpalljes;
-          const dhRaw = norm.dataHapjes_raw ?? norm.dataHapjes;
-          const dataShpalljes = toDateString(dsRaw), dataHapjes = toDateString(dhRaw);
-          const vitiShpalljes = parseInt(norm.vitiShpalljes) || parseInt(norm.year) || (dataShpalljes ? toYear(dsRaw) : new Date().getFullYear());
-          const year = vitiShpalljes;
+          if (String(norm.description||'').toUpperCase() === 'TOTAL') return;
+          if (String(norm.nr||'').toUpperCase() === 'TOTAL') return;
+
+          const dataShpalljes = serialToDate(norm.dataShpalljes);
+          const dataHapjes    = serialToDate(norm.dataHapjes);
+
+          const fondi = toNum(norm.fondiLimit);
+          const vlera = toNum(norm.vleraFituesit);
+          const kursimi    = fondi - vlera;
+          const nePct      = fondi > 0 ? parseFloat((vlera/fondi*100).toFixed(2)) : 0;
+          const kursimiPct = fondi > 0 ? parseFloat((kursimi/fondi*100).toFixed(2)) : 0;
+
+          const yearFromDate  = yearFromDDMMYYYY(dataShpalljes);
+          const vitiShpalljes  = parseInt(norm.vitiShpalljes)  || parseInt(norm.year) || yearFromDate || new Date().getFullYear();
           const vitiVleresimit = parseInt(norm.vitiVleresimit) || vitiShpalljes;
+
           rows.push({
-            id: crypto.randomUUID(), nr: Number(norm.nr)||null, year, vitiShpalljes, vitiVleresimit,
-            description: String(norm.description||''), ref: String(norm.ref||''),
+            id: crypto.randomUUID(),
+            nr: Number(norm.nr) || null,
+            year: vitiShpalljes, vitiShpalljes, vitiVleresimit,
+            description: String(norm.description || ''),
+            ref: String(norm.ref || ''),
             fondiLimit: fondi, vleraFituesit: vlera, nePct, kursimi, kursimiPct,
-            lloji: String(norm.lloji||'').trim().toUpperCase(), nrOfertave: toNum(norm.nrOfertave), nrOperatoreve: toNum(norm.nrOperatoreve),
-            dataShpalljes, dataHapjes, ePerfunduar: toBool(norm.ePerfunduar), eAnulluar: toBool(norm.eAnulluar),
+            lloji: String(norm.lloji || '').trim().toUpperCase(),
+            nrOfertave: toNum(norm.nrOfertave),
+            nrOperatoreve: toNum(norm.nrOperatoreve),
+            dataShpalljes, dataHapjes,
+            ePerfunduar: toBool(norm.ePerfunduar),
+            eAnulluar: toBool(norm.eAnulluar),
             lastEditedAt: null, editedBy: null,
           });
         });
-        if (rows.length===0) errors.push('Nuk u njoh asnjë kolonë.');
-        // Sort descending by nr so highest number appears first in the table
+
+        if (rows.length === 0) errors.push('Nuk u njoh asnjë kolonë.');
         rows.sort((a, b) => (Number(b.nr) || 0) - (Number(a.nr) || 0));
         resolve({ rows, errors });
       } catch (err) { reject(err); }

@@ -216,8 +216,11 @@ export function useBudget(token) {
   // ── Add row ─────────────────────────────────────────────────
   const addRow = useCallback(async () => {
     const yr = rows.length > 0 ? (rows[0].year || 2026) : 2026;
+    // Auto-assign next nr = max existing nr + 1
+    const maxNr = rows.reduce((m, r) => Math.max(m, Number(r.nr) || 0), 0);
+    const nextNr = maxNr + 1;
     const newRow = {
-      id: generateId(), nr: null, year: yr,
+      id: generateId(), nr: nextNr, year: yr,
       vitiShpalljes: yr, vitiVleresimit: yr,
       description: '', ref: '',
       fondiLimit: 0, vleraFituesit: 0, nePct: 0, kursimi: 0, kursimiPct: 0,
